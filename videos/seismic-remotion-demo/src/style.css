@@ -1,0 +1,5 @@
+@font-face {font-family: "Seismic Sans"; src: local("Inter"), local("Arial");}
+@font-face {font-family: "Seismic Display"; src: local("Space Grotesk"), local("Arial Bold");}
+@font-face {font-family: "Seismic Mono"; src: local("IBM Plex Mono"), local("Menlo");}
+* {box-sizing: border-box;}
+body {margin: 0; background: #12100e;}

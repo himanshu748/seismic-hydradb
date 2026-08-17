@@ -1,0 +1,27 @@
+{
+  "name": "seismic-remotion-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Caption-free Remotion demo for Seismic and Hack Hydra Track 02B",
+  "license": "MIT",
+  "scripts": {
+    "dev": "remotion studio --no-open",
+    "audio:murf": "node scripts/generate-murf.mjs",
+    "lint": "eslint src && tsc --noEmit",
+    "render": "remotion render SeismicLaunch renders/seismic-hack-hydra.mp4",
+    "stills": "remotion still SeismicLaunch"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.512",
+    "@remotion/media": "4.0.512",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.512"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.512",
+    "@types/react": "19.2.7",
+    "eslint": "9.19.0",
+    "typescript": "5.9.3"
+  }
+}

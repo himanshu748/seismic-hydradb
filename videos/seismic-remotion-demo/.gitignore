@@ -1,0 +1,4 @@
+node_modules
+public/audio/*.aiff
+renders/
+stills/

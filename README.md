@@ -146,6 +146,20 @@ Seismic does not claim runtime certainty. A result means the indexed static grap
 
 ## Verification
 
+### Remotion demo
+
+The under-three-minute judge demo is an editable, caption-free Remotion composition. It recreates the real dependency graph, MCP output and checked-in proof as React components, with no generated imagery.
+
+```bash
+cd videos/seismic-remotion-demo
+npm install
+npm run audio:murf  # reads MURF_API_KEY from the environment
+npm run lint
+npm run render
+```
+
+The storyboard and bounded narration claims live beside the composition in `STORYBOARD.md` and `SCRIPT.md`.
+
 ### Fast gate
 
 ```bash
@@ -230,6 +244,7 @@ src/seismic/web.py       dashboard API and static app
 ui/                      React landing page and analyzer
 benchmarks/              self-authored evaluation and stress proof
 tests/                   fast, Bolt and real MCP transport checks
+videos/                  Remotion judge demo, storyboard and narration script
 ```
 
 ## License
