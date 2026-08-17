@@ -44,7 +44,7 @@ def run_stress(query_count: int) -> dict[str, Any]:
     """Exercise exact ingestion and retrieval on the required synthetic graph size."""
 
     generated_at = datetime.now(UTC)
-    run_id = generated_at.strftime("%Y%m%dT%H%M%S%fZ")
+    run_id = generated_at.strftime("%Y%m%dt%H%M%S%fz")
     repo_id = f"{REPO_ID_PREFIX}-{run_id}"
     snapshot_key = f"{repo_id}@synthetic-v1"
     graph_started = time.perf_counter()
