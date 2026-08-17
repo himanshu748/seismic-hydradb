@@ -51,6 +51,9 @@ def run_stress(query_count: int) -> dict[str, Any]:
     with HydraDB(config) as db:
         db.verify_connection()
         db.setup_schema()
+        reset_started = time.perf_counter()
+        _clear_previous_run(db)
+        reset_seconds = time.perf_counter() - reset_started
         writer = SnapshotWriter(db)
         ingest_started = time.perf_counter()
         summary = writer.write(graph, generation_ms)
@@ -86,6 +89,7 @@ def run_stress(query_count: int) -> dict[str, Any]:
             "required_result": expected,
         },
         "summary": {
+            "namespaced_reset_seconds": round(reset_seconds, 3),
             "artifacts_written": summary["artifacts"],
             "relationships_written": summary["relationships"],
             "ingest_seconds": round(ingest_seconds, 3),
@@ -98,6 +102,20 @@ def run_stress(query_count: int) -> dict[str, Any]:
             "query_latency_p95_ms": round(_percentile(latencies, 0.95), 3),
         },
     }
+
+
+def _clear_previous_run(db: HydraDB) -> None:
+    """Delete only this benchmark's deterministic namespace before timing ingestion."""
+
+    for label in ("Artifact", "ArtifactIdentity", "Snapshot"):
+        db.execute_write(
+            f"MATCH (node:{label}) WHERE node.repo_key = $repo_key DETACH DELETE node",
+            {"repo_key": REPO_ID},
+        )
+    db.execute_write(
+        "MATCH (node:Repository) WHERE node.key = $repo_key DETACH DELETE node",
+        {"repo_key": REPO_ID},
+    )
 
 
 def _graph() -> RepositoryGraph:
