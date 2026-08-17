@@ -7,23 +7,29 @@ export const sceneFade = (frame: number, duration: number): number => interpolat
 
 export const Frame: React.FC<{children: ReactNode; duration: number; index: number; label: string}> = ({children, duration, index, label}) => {
   const frame = useCurrentFrame();
+  const driftX = Math.sin(frame / 72) * 3.5;
+  const driftY = Math.cos(frame / 94) * 2.5;
+  const driftScale = 1.004 + Math.sin(frame / 118) * 0.0025;
+  const glowX = 46 + Math.sin(frame / 86) * 24;
+  const glowY = 42 + Math.cos(frame / 111) * 18;
   return (
     <div style={{position: "absolute", inset: 0, overflow: "hidden", background: COLORS.graphite, color: COLORS.paper, opacity: sceneFade(frame, duration), fontFamily: "Seismic Sans"}}>
-      <SurveyGrid />
-      {children}
+      <SurveyGrid frame={frame} />
+      <div style={{position: "absolute", inset: -180, background: `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,90,36,.065), transparent 34%)`, filter: "blur(20px)", opacity: 0.72}} />
+      <div style={{position: "absolute", inset: 0, zIndex: 1, transform: `translate3d(${driftX}px, ${driftY}px, 0) scale(${driftScale})`, transformOrigin: "50% 48%"}}>{children}</div>
       <div style={{position: "absolute", left: 86, top: 48, width: 1748, height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 1000}}>
         <Brand />
         <div style={{display: "flex", gap: 18, alignItems: "center", fontFamily: "Seismic Mono", fontSize: 15, letterSpacing: "0.12em", color: COLORS.muted}}>
           <span>{label}</span><span style={{color: COLORS.orange}}>{String(index).padStart(2, "0")} / 07</span>
         </div>
       </div>
-      <div style={{position: "absolute", left: 0, bottom: 0, height: 5, width: `${(index / 7) * 100}%`, background: COLORS.orange}} />
+      <div style={{position: "absolute", left: 0, bottom: 0, zIndex: 1000, height: 5, width: `${((index - 1 + frame / duration) / 7) * 100}%`, background: COLORS.orange, boxShadow: "0 0 22px rgba(255,90,36,.42)"}} />
     </div>
   );
 };
 
-export const SurveyGrid: React.FC = () => (
-  <div style={{position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(245,239,230,.038) 1px, transparent 1px),linear-gradient(90deg, rgba(245,239,230,.038) 1px, transparent 1px)", backgroundSize: "64px 64px", maskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,.45) 75%, transparent 100%)"}} />
+export const SurveyGrid: React.FC<{frame: number}> = ({frame}) => (
+  <div style={{position: "absolute", inset: -64, backgroundImage: "linear-gradient(rgba(245,239,230,.038) 1px, transparent 1px),linear-gradient(90deg, rgba(245,239,230,.038) 1px, transparent 1px)", backgroundPosition: `${frame * 0.16}px ${frame * 0.1}px`, backgroundSize: "64px 64px", maskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,.45) 75%, transparent 100%)"}} />
 );
 
 export const Brand: React.FC<{large?: boolean}> = ({large = false}) => (
@@ -56,8 +62,9 @@ export const Node: React.FC<{x: number; y: number; label: string; kind: string; 
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const scale = spring({frame: frame - delay, fps, config: {damping: 18, mass: 0.65}});
+  const pulse = 0.5 + Math.sin(frame / 18) * 0.5;
   return (
-    <div style={{position: "absolute", left: x, top: y, width: 214, height: 88, padding: "15px 17px", borderRadius: 8, border: `1px solid ${active ? COLORS.orange : COLORS.border}`, background: active ? "#2b1c15" : COLORS.quiet, boxShadow: active ? "0 0 0 1px rgba(255,90,36,.2), 0 0 34px rgba(255,90,36,.12)" : "none", scale, ...style}}>
+    <div style={{position: "absolute", left: x, top: y, width: 214, height: 88, padding: "15px 17px", borderRadius: 8, border: `1px solid ${active ? COLORS.orange : COLORS.border}`, background: active ? "#2b1c15" : COLORS.quiet, boxShadow: active ? `0 0 0 1px rgba(255,90,36,.2), 0 0 ${28 + pulse * 18}px rgba(255,90,36,${0.1 + pulse * 0.08})` : "none", scale, ...style}}>
       <div style={{fontFamily: "Seismic Mono", fontSize: 13, letterSpacing: "0.1em", color: active ? COLORS.orange : COLORS.muted}}>{kind}</div>
       <div style={{fontFamily: "Seismic Mono", fontWeight: 600, fontSize: 20, marginTop: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>{label}</div>
     </div>
