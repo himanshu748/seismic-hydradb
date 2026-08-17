@@ -52,7 +52,7 @@ def run_stress(query_count: int) -> dict[str, Any]:
         db.verify_connection()
         db.setup_schema()
         reset_started = time.perf_counter()
-        _clear_previous_run(db)
+        _clear_previous_run(db, graph)
         reset_seconds = time.perf_counter() - reset_started
         writer = SnapshotWriter(db)
         ingest_started = time.perf_counter()
@@ -104,17 +104,28 @@ def run_stress(query_count: int) -> dict[str, Any]:
     }
 
 
-def _clear_previous_run(db: HydraDB) -> None:
+def _clear_previous_run(db: HydraDB, graph: RepositoryGraph) -> None:
     """Delete only this benchmark's deterministic namespace before timing ingestion."""
 
-    for label in ("Artifact", "ArtifactIdentity", "Snapshot"):
-        db.execute_write(
-            f"MATCH (node:{label}) WHERE node.repo_key = $repo_key DETACH DELETE node",
-            {"repo_key": REPO_ID},
-        )
+    ids_by_label = {
+        "Artifact": [artifact.id for artifact in graph.artifacts],
+        "ArtifactIdentity": sorted({artifact.identity_id for artifact in graph.artifacts}),
+    }
+    for label, node_ids in ids_by_label.items():
+        for offset in range(0, len(node_ids), 500):
+            rows = [{"id": node_id} for node_id in node_ids[offset : offset + 500]]
+            db.execute_write(
+                f"UNWIND $rows AS row MATCH (node:{label} {{id: row.id}}) "
+                "WHERE node.repo_key = $repo_key DETACH DELETE node",
+                {"rows": rows, "repo_key": REPO_ID},
+            )
     db.execute_write(
-        "MATCH (node:Repository) WHERE node.key = $repo_key DETACH DELETE node",
-        {"repo_key": REPO_ID},
+        "MATCH (node:Snapshot {id: $node_id}) WHERE node.repo_key = $repo_key DETACH DELETE node",
+        {"node_id": stable_id("snapshot", SNAPSHOT_KEY), "repo_key": REPO_ID},
+    )
+    db.execute_write(
+        "MATCH (node:Repository {id: $node_id}) WHERE node.key = $repo_key DETACH DELETE node",
+        {"node_id": stable_id("repository", REPO_ID), "repo_key": REPO_ID},
     )
 
 
