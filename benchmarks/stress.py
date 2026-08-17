@@ -22,8 +22,7 @@ from seismic.tools import SeismicService
 
 PROJECT_ROOT = Path(__file__).parents[1]
 DEFAULT_OUTPUT = Path(__file__).parent / "results" / "stress.json"
-REPO_ID = "seismic-stress-v1"
-SNAPSHOT_KEY = f"{REPO_ID}@synthetic-v1"
+REPO_ID_PREFIX = "seismic-stress-v1"
 
 
 def main() -> None:
@@ -44,16 +43,17 @@ def main() -> None:
 def run_stress(query_count: int) -> dict[str, Any]:
     """Exercise exact ingestion and retrieval on the required synthetic graph size."""
 
+    generated_at = datetime.now(UTC)
+    run_id = generated_at.strftime("%Y%m%dT%H%M%S%fZ")
+    repo_id = f"{REPO_ID_PREFIX}-{run_id}"
+    snapshot_key = f"{repo_id}@synthetic-v1"
     graph_started = time.perf_counter()
-    graph = _graph()
+    graph = _graph(repo_id, snapshot_key)
     generation_ms = (time.perf_counter() - graph_started) * 1_000
     config = SeismicConfig.from_env()
     with HydraDB(config) as db:
         db.verify_connection()
         db.setup_schema()
-        reset_started = time.perf_counter()
-        _clear_previous_run(db, graph)
-        reset_seconds = time.perf_counter() - reset_started
         writer = SnapshotWriter(db)
         ingest_started = time.perf_counter()
         summary = writer.write(graph, generation_ms)
@@ -65,7 +65,7 @@ def run_stress(query_count: int) -> dict[str, Any]:
         verified = 0
         for _ in range(query_count):
             started = time.perf_counter()
-            report = service.analyze_change(REPO_ID, [changed], max_hops=2, limit=10)
+            report = service.analyze_change(repo_id, [changed], max_hops=2, limit=10)
             latencies.append((time.perf_counter() - started) * 1_000)
             keys = {result["logical_key"] for result in report["results"]}
             if expected not in keys:
@@ -74,7 +74,7 @@ def run_stress(query_count: int) -> dict[str, Any]:
 
     return {
         "kind": "local deterministic stress proof",
-        "generated_at": datetime.now(UTC).isoformat(),
+        "generated_at": generated_at.isoformat(),
         "commit": _git_commit(),
         "environment": {
             "python": sys.version.split()[0],
@@ -82,6 +82,7 @@ def run_stress(query_count: int) -> dict[str, Any]:
             "hydradb_uri": config.uri,
         },
         "configuration": {
+            "repository_namespace": repo_id,
             "artifacts": len(graph.artifacts),
             "relationships": len(graph.relationships),
             "query_count": query_count,
@@ -89,7 +90,6 @@ def run_stress(query_count: int) -> dict[str, Any]:
             "required_result": expected,
         },
         "summary": {
-            "namespaced_reset_seconds": round(reset_seconds, 3),
             "artifacts_written": summary["artifacts"],
             "relationships_written": summary["relationships"],
             "ingest_seconds": round(ingest_seconds, 3),
@@ -104,45 +104,20 @@ def run_stress(query_count: int) -> dict[str, Any]:
     }
 
 
-def _clear_previous_run(db: HydraDB, graph: RepositoryGraph) -> None:
-    """Delete only this benchmark's deterministic namespace before timing ingestion."""
-
-    ids_by_label = {
-        "Artifact": [artifact.id for artifact in graph.artifacts],
-        "ArtifactIdentity": sorted({artifact.identity_id for artifact in graph.artifacts}),
-    }
-    for label, node_ids in ids_by_label.items():
-        for offset in range(0, len(node_ids), 500):
-            rows = [{"id": node_id} for node_id in node_ids[offset : offset + 500]]
-            db.execute_write(
-                f"UNWIND $rows AS row MATCH (node:{label} {{id: row.id}}) "
-                "WHERE node.repo_key = $repo_key DETACH DELETE node",
-                {"rows": rows, "repo_key": REPO_ID},
-            )
-    db.execute_write(
-        "MATCH (node:Snapshot {id: $node_id}) WHERE node.repo_key = $repo_key DETACH DELETE node",
-        {"node_id": stable_id("snapshot", SNAPSHOT_KEY), "repo_key": REPO_ID},
-    )
-    db.execute_write(
-        "MATCH (node:Repository {id: $node_id}) WHERE node.key = $repo_key DETACH DELETE node",
-        {"node_id": stable_id("repository", REPO_ID), "repo_key": REPO_ID},
-    )
-
-
-def _graph() -> RepositoryGraph:
+def _graph(repo_id: str, snapshot_key: str) -> RepositoryGraph:
     artifacts: list[ArtifactRecord] = []
     for index in range(5_000):
         logical_key = f"stress/node_{index:05d}.py::run"
-        identity_key = f"{REPO_ID}::function::{logical_key}"
-        key = f"{SNAPSHOT_KEY}::function::{logical_key}"
+        identity_key = f"{repo_id}::function::{logical_key}"
+        key = f"{snapshot_key}::function::{logical_key}"
         artifacts.append(
             ArtifactRecord(
                 id=stable_id("artifact", key),
                 key=key,
                 identity_id=stable_id("artifact-identity", identity_key),
                 identity_key=identity_key,
-                repo_key=REPO_ID,
-                snapshot_key=SNAPSHOT_KEY,
+                repo_key=repo_id,
+                snapshot_key=snapshot_key,
                 logical_key=logical_key,
                 kind="function",
                 path=f"stress/node_{index:05d}.py",
@@ -166,8 +141,8 @@ def _graph() -> RepositoryGraph:
     if len(relationships) != 20_000:
         raise AssertionError(f"synthetic graph has {len(relationships)} relationships")
     return RepositoryGraph(
-        repo_key=REPO_ID,
-        snapshot_key=SNAPSHOT_KEY,
+        repo_key=repo_id,
+        snapshot_key=snapshot_key,
         commit_sha="synthetic-v1",
         root_name="seismic-stress",
         artifacts=artifacts,
@@ -182,7 +157,7 @@ def _append_edge(
 ) -> None:
     relationships.append(
         RelationshipRecord(
-            id=relationship_id(SNAPSHOT_KEY, "CALLS", source.id, target.id),
+            id=relationship_id(source.snapshot_key, "CALLS", source.id, target.id),
             kind="CALLS",
             source_id=source.id,
             target_id=target.id,
