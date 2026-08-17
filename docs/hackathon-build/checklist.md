@@ -7,4 +7,4 @@
 - [x] Register stateless stdio and Streamable HTTP MCP tools.
 - [x] Build the real-backend dashboard.
 - [x] Add fast, live, transport, browser, evaluation and stress verification.
-- [ ] Run the full ship gate from a clean independent repository.
+- [x] Run the full ship gate from a clean independent repository.

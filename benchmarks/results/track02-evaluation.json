@@ -1,7 +1,7 @@
 {
   "kind": "self-authored Track 02 evaluation",
-  "generated_at": "2026-08-17T10:57:36.279426+00:00",
-  "commit": "HEAD",
+  "generated_at": "2026-08-17T14:47:33.816066+00:00",
+  "commit": "7858217a2c44415b65c602b845b4c31338b408c0",
   "environment": {
     "python": "3.12.11",
     "platform": "macOS-26.5.1-arm64-arm-64bit",
@@ -24,7 +24,7 @@
         "unresolved_imports": 33,
         "unresolved_calls": 1122,
         "skipped_files": 0,
-        "duration_ms": 106.669,
+        "duration_ms": 106.349,
         "activated": true,
         "warnings": []
       }
@@ -39,8 +39,8 @@
       "abstention_total": 2,
       "exact_path_tasks_valid": 10,
       "exact_path_tasks_total": 10,
-      "latency_p50_ms": 43.502,
-      "latency_p95_ms": 652.618
+      "latency_p50_ms": 43.081,
+      "latency_p95_ms": 636.393
     },
     "tfidf": {
       "precision_at_k": 0.1321,
@@ -48,8 +48,8 @@
       "mrr": 0.225,
       "abstention_correct": 2,
       "abstention_total": 2,
-      "latency_p50_ms": 0.726,
-      "latency_p95_ms": 1.375
+      "latency_p50_ms": 0.689,
+      "latency_p95_ms": 1.33
     },
     "hybrid": {
       "precision_at_k": 1.0,
@@ -90,7 +90,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 86.068
+        "latency_ms": 45.212
       },
       "tfidf": {
         "retrieved": [
@@ -115,7 +115,7 @@
         "recall_at_k": 0.1429,
         "mrr": 0.25,
         "abstention_correct": false,
-        "latency_ms": 1.843
+        "latency_ms": 1.769
       },
       "hybrid": {
         "retrieved": [
@@ -155,7 +155,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 16.956
+        "latency_ms": 15.579
       },
       "tfidf": {
         "retrieved": [
@@ -170,7 +170,7 @@
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 0.787
+        "latency_ms": 0.765
       },
       "hybrid": {
         "retrieved": [
@@ -205,7 +205,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 17.259
+        "latency_ms": 16.589
       },
       "tfidf": {
         "retrieved": [
@@ -220,7 +220,7 @@
         "recall_at_k": 0.5,
         "mrr": 0.5,
         "abstention_correct": false,
-        "latency_ms": 0.715
+        "latency_ms": 0.697
       },
       "hybrid": {
         "retrieved": [
@@ -259,7 +259,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 28.862
+        "latency_ms": 29.374
       },
       "tfidf": {
         "retrieved": [
@@ -278,7 +278,7 @@
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 0.977
+        "latency_ms": 0.971
       },
       "hybrid": {
         "retrieved": [
@@ -329,7 +329,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 45.179
+        "latency_ms": 45.824
       },
       "tfidf": {
         "retrieved": [
@@ -358,7 +358,7 @@
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 0.991
+        "latency_ms": 0.838
       },
       "hybrid": {
         "retrieved": [
@@ -410,7 +410,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 43.712
+        "latency_ms": 45.293
       },
       "tfidf": {
         "retrieved": [
@@ -435,7 +435,7 @@
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 0.692
+        "latency_ms": 0.717
       },
       "hybrid": {
         "retrieved": [
@@ -489,7 +489,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 44.045
+        "latency_ms": 43.961
       },
       "tfidf": {
         "retrieved": [
@@ -564,7 +564,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 25.471
+        "latency_ms": 26.43
       },
       "tfidf": {
         "retrieved": [
@@ -583,7 +583,7 @@
         "recall_at_k": 0.25,
         "mrr": 1.0,
         "abstention_correct": false,
-        "latency_ms": 0.899
+        "latency_ms": 0.667
       },
       "hybrid": {
         "retrieved": [
@@ -626,7 +626,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 30.642
+        "latency_ms": 31.351
       },
       "tfidf": {
         "retrieved": [
@@ -647,7 +647,7 @@
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 0.682
+        "latency_ms": 0.647
       },
       "hybrid": {
         "retrieved": [
@@ -695,7 +695,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 43.291
+        "latency_ms": 42.2
       },
       "tfidf": {
         "retrieved": [
@@ -720,7 +720,7 @@
         "recall_at_k": 0.4286,
         "mrr": 0.5,
         "abstention_correct": false,
-        "latency_ms": 0.737
+        "latency_ms": 0.655
       },
       "hybrid": {
         "retrieved": [
@@ -754,7 +754,7 @@
         "mrr": 0.0,
         "abstention_correct": true,
         "exact_paths_valid": true,
-        "latency_ms": 658.369
+        "latency_ms": 637.327
       },
       "tfidf": {
         "retrieved": [],
@@ -791,7 +791,7 @@
         "mrr": 0.0,
         "abstention_correct": true,
         "exact_paths_valid": true,
-        "latency_ms": 647.913
+        "latency_ms": 635.628
       },
       "tfidf": {
         "retrieved": [],
