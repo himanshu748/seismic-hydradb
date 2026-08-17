@@ -188,7 +188,7 @@ All 10 supported graph tasks also passed the exact path structure check. This is
 PYTHONPATH=src .venv/bin/python -m benchmarks.stress --queries 25
 ```
 
-The checked-in raw result is [benchmarks/results/stress.json](benchmarks/results/stress.json). It verifies a synthetic graph with 5,000 artifacts and exactly 20,000 code relationships. The current local run wrote all records in 21.597 seconds and recovered the required exact target in 25/25 queries, with 6.648 ms p50 and 7.414 ms p95 query latency.
+The checked-in raw result is [benchmarks/results/stress.json](benchmarks/results/stress.json). It verifies a synthetic graph with 5,000 artifacts and exactly 20,000 code relationships. The current isolated local run wrote all records in 35.294 seconds and recovered the required exact target in 25/25 queries, with 6.920 ms p50 and 8.926 ms p95 query latency. Each run uses a fresh repository namespace, so these are new-node writes rather than updates to an existing graph.
 
 ## Configuration
 

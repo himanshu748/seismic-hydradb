@@ -1,13 +1,14 @@
 {
   "kind": "local deterministic stress proof",
-  "generated_at": "2026-08-17T14:47:18.769559+00:00",
-  "commit": "7858217a2c44415b65c602b845b4c31338b408c0",
+  "generated_at": "2026-08-17T15:19:23.130608+00:00",
+  "commit": "1870fe3ab2300642b9f63942259b9b36439b3746",
   "environment": {
     "python": "3.12.11",
     "platform": "macOS-26.5.1-arm64-arm-64bit",
-    "hydradb_uri": "neo4j://127.0.0.1:7687"
+    "hydradb_uri": "neo4j://127.0.0.1:7688"
   },
   "configuration": {
+    "repository_namespace": "seismic-stress-v1-20260817t151923130608z",
     "artifacts": 5000,
     "relationships": 20000,
     "query_count": 25,
@@ -17,11 +18,11 @@
   "summary": {
     "artifacts_written": 5000,
     "relationships_written": 20000,
-    "ingest_seconds": 21.597,
-    "artifact_throughput_per_second": 231.517,
-    "relationship_throughput_per_second": 926.069,
+    "ingest_seconds": 35.294,
+    "artifact_throughput_per_second": 141.666,
+    "relationship_throughput_per_second": 566.662,
     "exact_queries_verified": 25,
-    "query_latency_p50_ms": 6.648,
-    "query_latency_p95_ms": 7.414
+    "query_latency_p50_ms": 6.92,
+    "query_latency_p95_ms": 8.926
   }
 }
