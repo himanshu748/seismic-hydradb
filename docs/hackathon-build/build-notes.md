@@ -14,3 +14,4 @@
 - Optimized exact artifact resolution and native traversal from multi-second scans to single-digit millisecond stress queries.
 - Passed 11 database-independent tests and 3 live tests after populating HydraDB with the full stress graph.
 - Built the source archive and wheel, then verified that the wheel contains the complete dashboard bundle.
+- Added safe unified-diff analysis that maps changed line ranges to indexed symbols before native graph traversal.

@@ -71,6 +71,20 @@ def test_fresh_http_clients_share_only_durable_hydradb_graph(tmp_path: Path) -> 
             assert "tests/test_checkout.py::test_total" in {
                 result["logical_key"] for result in report.structured_content["results"]
             }
+            diffed = await fresh.call_tool(
+                "analyze_diff",
+                {
+                    "repo_id": repo_id,
+                    "diff": (
+                        "--- a/src/sample_app/pricing.py\n"
+                        "+++ b/src/sample_app/pricing.py\n"
+                        "@@ -7 +7 @@\n"
+                    ),
+                },
+            )
+            assert not diffed.is_error
+            assert diffed.structured_content is not None
+            assert diffed.structured_content["targets"] == ["src/sample_app/pricing.py::calculate"]
 
     try:
         with _running_server(tmp_path) as url:

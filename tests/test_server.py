@@ -15,6 +15,7 @@ def test_server_registers_documented_tools_with_descriptions() -> None:
     assert set(by_name) == {
         "index_repository",
         "analyze_change",
+        "analyze_diff",
         "retrieve_context",
         "explain_impact",
         "record_incident",
@@ -23,6 +24,7 @@ def test_server_registers_documented_tools_with_descriptions() -> None:
     assert all(tool.description for tool in by_name.values())
     assert by_name["index_repository"].input_schema["required"] == ["repo_path"]
     assert by_name["analyze_change"].input_schema["required"] == ["repo_id", "targets"]
+    assert by_name["analyze_diff"].input_schema["required"] == ["repo_id", "diff"]
     assert by_name["explain_impact"].input_schema["required"] == [
         "repo_id",
         "changed_target",

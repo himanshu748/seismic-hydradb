@@ -67,6 +67,21 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         assert "pyproject.toml::script::sample" in result_keys
         assert report["engine"] == "HydraDB algo.SSpaths"
 
+        diff_report = service.analyze_diff(
+            repo_id,
+            """diff --git a/src/sample_app/pricing.py b/src/sample_app/pricing.py
+--- a/src/sample_app/pricing.py
++++ b/src/sample_app/pricing.py
+@@ -7 +7 @@
+-    return subtotal * 1.1
++    return subtotal * 1.2
+""",
+        )
+        assert diff_report["targets"] == ["src/sample_app/pricing.py::calculate"]
+        assert "tests/test_checkout.py::test_total" in {
+            result["logical_key"] for result in diff_report["results"]
+        }
+
         multi_target = service.analyze_change(
             repo_id,
             [

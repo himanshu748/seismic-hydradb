@@ -62,6 +62,7 @@ def test_fresh_mcp_process_analyzes_graph_indexed_by_prior_process(tmp_path: Pat
             assert tools == {
                 "index_repository",
                 "analyze_change",
+                "analyze_diff",
                 "retrieve_context",
                 "explain_impact",
                 "record_incident",
@@ -97,6 +98,21 @@ def test_fresh_mcp_process_analyzes_graph_indexed_by_prior_process(tmp_path: Pat
             assert "src/sample_app/service.py::handler" in result_keys
             assert "tests/test_checkout.py::test_total" in result_keys
             assert all(result["hops"] for result in results)
+
+            diffed = await client.call_tool(
+                "analyze_diff",
+                {
+                    "repo_id": repo_id,
+                    "diff": (
+                        "--- a/src/sample_app/pricing.py\n"
+                        "+++ b/src/sample_app/pricing.py\n"
+                        "@@ -7 +7 @@\n"
+                    ),
+                },
+            )
+            assert not diffed.is_error
+            assert diffed.structured_content is not None
+            assert diffed.structured_content["targets"] == ["src/sample_app/pricing.py::calculate"]
 
     try:
         snapshot_id = anyio.run(index_in_first_process)

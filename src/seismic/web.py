@@ -40,6 +40,15 @@ class AnalyzeBody(BaseModel):
     limit: int = Field(default=30, ge=1, le=200)
 
 
+class DiffBody(BaseModel):
+    """Validated unified-diff analysis request from an agent or dashboard."""
+
+    repo_id: str = Field(min_length=1, max_length=120)
+    diff: str = Field(min_length=1, max_length=250_000)
+    max_hops: int = Field(default=4, ge=1, le=8)
+    limit: int = Field(default=30, ge=1, le=200)
+
+
 class ContextBody(BaseModel):
     """Validated graph-context retrieval request from the dashboard."""
 
@@ -130,6 +139,10 @@ def create_app(service_override: SeismicService | None = None) -> FastAPI:
         return dict(
             _service(request).analyze_change(body.repo_id, body.targets, body.max_hops, body.limit)
         )
+
+    @web.post("/api/analyze-diff")
+    async def analyze_diff(request: Request, body: DiffBody) -> dict[str, object]:
+        return _service(request).analyze_diff(body.repo_id, body.diff, body.max_hops, body.limit)
 
     @web.post("/api/context")
     async def retrieve_context(request: Request, body: ContextBody) -> dict[str, object]:

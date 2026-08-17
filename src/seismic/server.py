@@ -88,6 +88,19 @@ def analyze_change(
 
 
 @mcp.tool()
+def analyze_diff(
+    repo_id: str,
+    diff: str,
+    ctx: Context[RuntimeState],
+    max_hops: int = 4,
+    limit: int = 30,
+) -> dict[str, object]:
+    """Map a unified diff to touched symbols and return their graph blast radius."""
+
+    return ctx.request_context.lifespan_context.service.analyze_diff(repo_id, diff, max_hops, limit)
+
+
+@mcp.tool()
 def retrieve_context(
     repo_id: str,
     query: str,

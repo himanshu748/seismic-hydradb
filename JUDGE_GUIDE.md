@@ -10,7 +10,8 @@ Seismic gives coding agents a proof-carrying blast radius before they edit code.
 2. Analyze `src/sample_app/pricing.py::calculate` in the seeded `seismic` repository.
 3. Select an affected result to see the exact graph path.
 4. Compare the risk score components and incident evidence.
-5. Open `src/seismic/tools.py` to see the three HydraDB native path procedures.
+5. Show `analyze_diff` resolving changed patch lines to exact functions.
+6. Open `src/seismic/tools.py` to see the three HydraDB native path procedures.
 
 ## Why HydraDB is essential
 
@@ -60,7 +61,7 @@ Show the raw evaluation and stress JSON. State the scope precisely: a self-autho
 cd ui && npm run build
 ```
 
-Current test split: 11 fast tests and 3 live integration tests.
+Current test split: 13 fast tests and 3 live integration tests.
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m benchmarks.track02_eval

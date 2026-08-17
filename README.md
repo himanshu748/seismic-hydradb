@@ -30,6 +30,7 @@ The direction invariant is simple: a consumer points to its dependency. Blast ra
 - Files, functions, classes, tests, entrypoints and package versions as graph artifacts
 - `PART_OF`, `IMPORTS`, `CALLS`, `TESTS`, `STARTS_AT` and `DEPENDS_ON` relationships
 - Native HydraDB `algo.SSpaths`, `algo.MSpaths` and `algo.SPpaths` traversal
+- Automatic symbol discovery from bounded unified diffs
 - Transparent risk scores based on path length, fan-in and incident history
 - Incidents attached to stable identities so evidence survives new snapshots
 - Stateless stdio and Streamable HTTP MCP transports
@@ -109,12 +110,15 @@ The endpoint is `http://127.0.0.1:8790/mcp`. HTTP is configured with `stateless_
 |---|---|
 | `index_repository` | Parse, validate and activate an immutable snapshot for one allowed Git checkout |
 | `analyze_change` | Rank reverse dependency paths from one or more changed targets |
+| `analyze_diff` | Map changed patch lines to indexed symbols, then rank their combined blast radius |
 | `retrieve_context` | Resolve lexical or agent-supplied seeds and expand grounded graph context |
 | `explain_impact` | Return one exact path between a change and an affected artifact, or abstain |
 | `record_incident` | Store real breakage evidence against stable artifact identities |
 | `repository_status` | Report the active snapshot and its artifact counts |
 
 Every tool has a short docstring because its description is part of the agent-facing MCP contract.
+
+An agent can pass the output of `git diff --unified=0` directly to `analyze_diff`. Seismic never applies the patch. It validates every patch path, resolves touched line ranges against the active snapshot and sends the discovered symbols through the same HydraDB path engine.
 
 ## HydraDB data model
 
@@ -158,7 +162,7 @@ cd ui && npm run build
 .venv/bin/pytest -q -m integration
 ```
 
-The current suite collects 14 tests: 11 fast tests and 3 live integration tests. The live group covers direct Bolt behavior, a fresh stdio MCP process and fresh clients against sessionless Streamable HTTP.
+The current suite collects 16 tests: 13 fast tests and 3 live integration tests. The live group covers direct Bolt behavior, unified-diff resolution, a fresh stdio MCP process and fresh clients against sessionless Streamable HTTP.
 
 ### Self-authored Track 02 evaluation
 
@@ -218,6 +222,7 @@ The checked-in raw result is [benchmarks/results/stress.json](benchmarks/results
 src/seismic/config.py    validated environment and repository boundaries
 src/seismic/db.py        official Neo4j driver and startup schema
 src/seismic/parser.py    Python repository graph extraction
+src/seismic/diffing.py   bounded unified-diff target discovery
 src/seismic/ingest.py    immutable snapshot writer
 src/seismic/tools.py     graph-native product operations
 src/seismic/server.py    stateless MCP transports

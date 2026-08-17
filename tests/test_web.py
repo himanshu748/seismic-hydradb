@@ -55,6 +55,19 @@ class FakeService:
             "warnings": [],
         }
 
+    def analyze_diff(self, repo_id: str, diff: str, max_hops: int, limit: int) -> dict[str, Any]:
+        self.calls.append(("diff", (repo_id, diff, max_hops, limit)))
+        return {
+            "repo_id": repo_id,
+            "snapshot_id": f"{repo_id}@abc123",
+            "targets": ["src/a.py::run"],
+            "diff_files": ["src/a.py"],
+            "engine": "HydraDB algo.SSpaths",
+            "results": [],
+            "unresolved_targets": [],
+            "warnings": [],
+        }
+
     def repository_status(self, repo_id: str) -> dict[str, Any]:
         if repo_id == "missing":
             raise ValueError("repository missing has no active Seismic snapshot")
@@ -78,16 +91,22 @@ def test_health_index_analyze_and_status_contracts() -> None:
             "/api/analyze",
             json={"repo_id": "demo", "targets": ["src/a.py::run"], "max_hops": 3},
         )
+        diffed = client.post(
+            "/api/analyze-diff",
+            json={"repo_id": "demo", "diff": "--- a/src/a.py\n+++ b/src/a.py\n@@ -1 +1 @@"},
+        )
         status = client.get("/api/repositories/demo")
 
     assert health.status_code == 200
     assert health.json()["backend"] == "HydraDB"
     assert indexed.json()["activated"] is True
     assert analyzed.json()["engine"] == "HydraDB algo.SSpaths"
+    assert diffed.json()["diff_files"] == ["src/a.py"]
     assert status.json()["artifact_count"] == 8
     assert service.calls == [
         ("index", ("/safe/repo", "demo")),
         ("analyze", ("demo", ["src/a.py::run"], 3, 30)),
+        ("diff", ("demo", "--- a/src/a.py\n+++ b/src/a.py\n@@ -1 +1 @@", 4, 30)),
     ]
 
 

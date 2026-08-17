@@ -12,6 +12,7 @@ from neo4j.graph import Node, Path
 
 from seismic.config import SeismicConfig
 from seismic.db import HydraDB
+from seismic.diffing import ChangedFile, parse_unified_diff
 from seismic.identity import relationship_id, stable_id
 from seismic.ingest import SnapshotWriter
 from seismic.models import (
@@ -181,6 +182,35 @@ class SeismicService:
             "unresolved_targets": unresolved,
             "warnings": warnings,
         }
+
+    def analyze_diff(
+        self,
+        repo_id: str,
+        diff: str,
+        max_hops: int = 4,
+        limit: int = 30,
+    ) -> dict[str, object]:
+        """Resolve touched lines from a unified diff before ranking graph impact."""
+
+        repo_key, snapshot_key = self._active_snapshot(repo_id)
+        changes = parse_unified_diff(diff)
+        targets, warnings = self._diff_targets(snapshot_key, changes)
+        if not targets:
+            return {
+                "repo_id": repo_key,
+                "snapshot_id": snapshot_key,
+                "targets": [],
+                "diff_files": [change.path for change in changes],
+                "engine": "HydraDB native path procedures",
+                "results": [],
+                "unresolved_targets": [],
+                "warnings": warnings or ["The diff did not touch an indexed artifact."],
+            }
+        raw_report = self.analyze_change(repo_key, targets, max_hops, limit)
+        report: dict[str, object] = dict(raw_report)
+        report["diff_files"] = [change.path for change in changes]
+        report["warnings"] = [*raw_report["warnings"], *warnings]
+        return report
 
     def retrieve_context(
         self,
@@ -398,6 +428,42 @@ RETURN path
         if not rows or str(rows[0]["key"]) != clean or not rows[0]["snapshot_key"]:
             raise ValueError(f"repository {clean} has no active Seismic snapshot")
         return clean, str(rows[0]["snapshot_key"])
+
+    def _diff_targets(
+        self, snapshot_key: str, changes: list[ChangedFile]
+    ) -> tuple[list[str], list[str]]:
+        targets: list[str] = []
+        warnings: list[str] = []
+        for change in changes:
+            rows = self.db.query(
+                "MATCH (artifact:Artifact) "
+                "WHERE artifact.snapshot_key = $snapshot_key AND artifact.path = $path "
+                "RETURN artifact.logical_key AS logical_key, artifact.kind AS kind, "
+                "artifact.line_start AS line_start, artifact.line_end AS line_end "
+                "ORDER BY artifact.line_start, artifact.line_end",
+                {"snapshot_key": snapshot_key, "path": change.path},
+            )
+            if not rows:
+                warnings.append(f"{change.path} is not present in the active snapshot.")
+                continue
+            symbols = [
+                row
+                for row in rows
+                if str(row["kind"]) in {"function", "test", "class"}
+                and _ranges_overlap(
+                    change.ranges,
+                    int(row["line_start"] or 0),
+                    int(row["line_end"] or 0),
+                )
+            ]
+            selected = symbols or [row for row in rows if str(row["kind"]) == "file"]
+            for row in selected:
+                logical_key = str(row["logical_key"])
+                if logical_key not in targets:
+                    targets.append(logical_key)
+        if len(targets) > 10:
+            warnings.append("The diff resolved more than 10 artifacts; analysis used the first 10.")
+        return targets[:10], warnings
 
     def _resolve_target(self, snapshot_key: str, target: str) -> list[dict[str, object]]:
         clean = _text(target, "target", 500)
@@ -626,6 +692,12 @@ def _record_id(value: object) -> int:
     if isinstance(value, bool) or not isinstance(value, (int, str)):
         raise ValueError("HydraDB returned an invalid artifact ID")
     return int(value)
+
+
+def _ranges_overlap(ranges: tuple[tuple[int, int], ...], start: int, end: int) -> bool:
+    if start <= 0 or end < start:
+        return False
+    return any(range_start <= end and range_end >= start for range_start, range_end in ranges)
 
 
 def _target_list(values: list[str]) -> list[str]:
