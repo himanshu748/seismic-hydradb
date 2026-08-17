@@ -232,11 +232,12 @@ class SeismicService:
             ]
         else:
             rows = self.db.query(
-                "MATCH (artifact:Artifact) WHERE artifact.snapshot_key = $snapshot_key "
+                "MATCH (snapshot:Snapshot {id: $snapshot_id})-[:CONTAINS]->"
+                "(artifact:Artifact) "
                 "RETURN artifact.logical_key AS logical_key, artifact.path AS path, "
                 "artifact.qualified_name AS qualified_name, artifact.text AS text "
                 "ORDER BY artifact.id LIMIT 5000",
-                {"snapshot_key": snapshot_key},
+                {"snapshot_id": stable_id("snapshot", snapshot_key)},
             )
             query_tokens = _tokens(clean_query)
             ranked: list[tuple[float, str]] = []
@@ -400,12 +401,12 @@ RETURN path
 
         repo_key, snapshot_key = self._active_snapshot(repo_id)
         rows = self.db.query(
-            "MATCH (snapshot:Snapshot) WHERE snapshot.key = $snapshot_key "
+            "MATCH (snapshot:Snapshot {id: $snapshot_id}) "
             "RETURN snapshot.commit_sha AS commit_sha, snapshot.status AS status, "
             "snapshot.artifact_count AS artifact_count, "
             "snapshot.relationship_count AS relationship_count, "
             "snapshot.created_at AS created_at",
-            {"snapshot_key": snapshot_key},
+            {"snapshot_id": stable_id("snapshot", snapshot_key)},
         )
         row = rows[0] if rows else {}
         return {
@@ -436,12 +437,15 @@ RETURN path
         warnings: list[str] = []
         for change in changes:
             rows = self.db.query(
-                "MATCH (artifact:Artifact) "
-                "WHERE artifact.snapshot_key = $snapshot_key AND artifact.path = $path "
+                "MATCH (snapshot:Snapshot {id: $snapshot_id})-[:CONTAINS]->"
+                "(artifact:Artifact) WHERE artifact.path = $path "
                 "RETURN artifact.logical_key AS logical_key, artifact.kind AS kind, "
                 "artifact.line_start AS line_start, artifact.line_end AS line_end "
                 "ORDER BY artifact.line_start, artifact.line_end",
-                {"snapshot_key": snapshot_key, "path": change.path},
+                {
+                    "snapshot_id": stable_id("snapshot", snapshot_key),
+                    "path": change.path,
+                },
             )
             if not rows:
                 warnings.append(f"{change.path} is not present in the active snapshot.")
@@ -484,15 +488,17 @@ RETURN path
             if exact_rows:
                 return exact_rows
         fallback_rows = self.db.query(
-            "MATCH (artifact:Artifact) "
-            "WHERE artifact.snapshot_key = $snapshot_key "
-            "AND artifact.qualified_name = $target "
+            "MATCH (snapshot:Snapshot {id: $snapshot_id})-[:CONTAINS]->"
+            "(artifact:Artifact) WHERE artifact.qualified_name = $target "
             "RETURN artifact.id AS id, artifact.key AS key, "
             "artifact.logical_key AS logical_key, artifact.kind AS kind, "
             "artifact.path AS path, artifact.qualified_name AS qualified_name, "
             "artifact.identity_key AS identity_key "
             "ORDER BY artifact.key LIMIT 6",
-            {"snapshot_key": snapshot_key, "target": clean},
+            {
+                "snapshot_id": stable_id("snapshot", snapshot_key),
+                "target": clean,
+            },
         )
         return [dict(row) for row in fallback_rows]
 

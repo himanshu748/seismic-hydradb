@@ -19,6 +19,7 @@ from mcp import Client
 
 from seismic.config import SeismicConfig
 from seismic.db import HydraDB
+from tests.support import cleanup_repository
 
 pytestmark = pytest.mark.integration
 
@@ -92,15 +93,7 @@ def test_fresh_http_clients_share_only_durable_hydradb_graph(tmp_path: Path) -> 
     finally:
         config = SeismicConfig.from_env()
         with HydraDB(config) as db:
-            for label in ("Artifact", "ArtifactIdentity", "Snapshot", "Incident"):
-                db.execute_write(
-                    f"MATCH (node:{label}) WHERE node.repo_key = $repo_key DETACH DELETE node",
-                    {"repo_key": repo_id},
-                )
-            db.execute_write(
-                "MATCH (node:Repository) WHERE node.key = $repo_key DETACH DELETE node",
-                {"repo_key": repo_id},
-            )
+            cleanup_repository(db, repo_id)
 
 
 @contextmanager
