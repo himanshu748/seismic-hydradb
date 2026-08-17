@@ -3,8 +3,6 @@ import {interpolate, spring, useCurrentFrame, useVideoConfig} from "remotion";
 import {COLORS} from "./constants";
 
 export const ease = (frame: number, at: number, duration = 22): number => interpolate(frame, [at, at + duration], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
-export const sceneFade = (frame: number, duration: number): number => interpolate(frame, [0, 16, duration - 14, duration], [0, 1, 1, 0], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
-
 export const Frame: React.FC<{children: ReactNode; duration: number; index: number; label: string}> = ({children, duration, index, label}) => {
   const frame = useCurrentFrame();
   const driftX = Math.sin(frame / 72) * 3.5;
@@ -13,9 +11,10 @@ export const Frame: React.FC<{children: ReactNode; duration: number; index: numb
   const glowX = 46 + Math.sin(frame / 86) * 24;
   const glowY = 42 + Math.cos(frame / 111) * 18;
   return (
-    <div style={{position: "absolute", inset: 0, overflow: "hidden", background: COLORS.graphite, color: COLORS.paper, opacity: sceneFade(frame, duration), fontFamily: "Seismic Sans"}}>
+    <div style={{position: "absolute", inset: 0, overflow: "hidden", background: COLORS.graphite, color: COLORS.paper, fontFamily: "Seismic Sans"}}>
       <SurveyGrid frame={frame} />
       <div style={{position: "absolute", inset: -180, background: `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,90,36,.065), transparent 34%)`, filter: "blur(20px)", opacity: 0.72}} />
+      <div style={{position: "absolute", left: 0, right: 0, top: (frame * 1.8) % 1240 - 140, height: 140, background: "linear-gradient(to bottom, transparent, rgba(255,90,36,.026), transparent)", zIndex: 0}} />
       <div style={{position: "absolute", inset: 0, zIndex: 1, transform: `translate3d(${driftX}px, ${driftY}px, 0) scale(${driftScale})`, transformOrigin: "50% 48%"}}>{children}</div>
       <div style={{position: "absolute", left: 86, top: 48, width: 1748, height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 1000}}>
         <Brand />

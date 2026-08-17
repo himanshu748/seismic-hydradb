@@ -15,7 +15,7 @@ export const BlastRadiusScene: React.FC<{duration: number}> = ({duration}) => {
   const pulse = interpolate(frame % 96, [0, 48, 96], [0.3, 1, 0.3]);
   return <Frame duration={duration} index={3} label="EXACT BLAST RADIUS">
     <div style={{position: "absolute", left: 92, right: 92, top: 150, bottom: 110, display: "grid", gridTemplateColumns: "1fr 420px", gap: 22}}>
-      <Panel style={{position: "relative", overflow: "hidden", opacity: ease(frame, 12)}}>
+      <Panel style={{position: "relative", overflow: "hidden", opacity: ease(frame, 0, 8)}}>
         <div style={{position: "absolute", left: 34, top: 28}}><Kicker>Changed target</Kicker><div style={{fontFamily: "Seismic Mono", fontSize: 21, marginTop: 14}}>pricing.py::calculate</div></div>
         <Node x={70} y={318} label="calculate" kind="CHANGE" active delay={40}/>
         <Node x={440} y={318} label="total" kind="FUNCTION" active delay={72}/>
