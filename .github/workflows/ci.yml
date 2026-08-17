@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  fast-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install Python dependencies
+        run: uv pip install --system -e '.[dev]'
+
+      - name: Build dashboard
+        working-directory: ui
+        run: npm ci && npm run build
+
+      - name: Verify committed dashboard bundle
+        run: git diff --exit-code -- ui/dist
+
+      - name: Lint and format
+        run: |
+          ruff format --check src tests benchmarks
+          ruff check src tests benchmarks
+
+      - name: Type check
+        run: mypy src
+
+      - name: Run database-independent tests
+        run: pytest -q -m 'not integration'

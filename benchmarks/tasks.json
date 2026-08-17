@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "description": "Self-authored Track 02 change-context tasks reviewed against HydraMind's Python source graph.",
+  "repositories": {
+    "hydramind-eval": "../../.."
+  },
+  "tasks": [
+    {
+      "id": "conflict-polarity-callers",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/conflict.py::detect_conflict_reason",
+      "max_hops": 2,
+      "expected": [
+        "src/hydramind/tools.py::MemoryService.check_conflict",
+        "tests/test_conflict.py::test_detects_opposite_polarity",
+        "tests/test_conflict.py::test_does_not_flag_opposite_modals_about_different_claims",
+        "tests/test_conflict.py::test_does_not_flag_unrelated_same_polarity_statements",
+        "tests/test_conflict.py::test_polarity_detection_is_symmetric",
+        "src/hydramind/tools.py::MemoryService.remember",
+        "src/hydramind/tools.py::MemoryService.revise"
+      ]
+    },
+    {
+      "id": "keyword-score-consumers",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::keyword_overlap_score",
+      "max_hops": 2,
+      "expected": [
+        "src/hydramind/tools.py::MemoryService.recall",
+        "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+      ]
+    },
+    {
+      "id": "http-entrypoint-proof",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/server.py::http_main",
+      "max_hops": 2,
+      "expected": [
+        "pyproject.toml::script::hydramind-http",
+        "tests/test_server.py::test_http_entrypoint_forces_stateless_json_transport"
+      ]
+    },
+    {
+      "id": "dashboard-service-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/web.py::DashboardService",
+      "max_hops": 2,
+      "expected": [
+        "src/hydramind/web.py::main",
+        "tests/test_web.py::test_dashboard_state_exposes_temporal_memories_and_revision_edges",
+        "tests/test_web.py::test_seed_demo_showcases_revision_history",
+        "pyproject.toml::script::hydramind-ui"
+      ]
+    },
+    {
+      "id": "database-constructor-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/db.py::HydraDB",
+      "max_hops": 1,
+      "expected": [
+        "benchmarks/product_stress.py::run_stress",
+        "examples/demo.py::run_demo",
+        "src/hydramind/web.py::main",
+        "benchmarks/track03_eval.py::main",
+        "src/hydramind/server.py::hydramind_lifespan",
+        "tests/conftest.py::live_db",
+        "tests/test_db.py::test_query_uses_hydradb_compatible_autocommit_run",
+        "tests/test_db.py::test_unreachable_database_has_a_clear_uri_and_auth_hint",
+        "tests/test_hardening.py::test_invalid_uri_is_reported_as_a_hydramind_error"
+      ]
+    },
+    {
+      "id": "memory-id-validation-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_parse_memory_id",
+      "max_hops": 2,
+      "expected": [
+        "src/hydramind/tools.py::MemoryService._resume_conflicts",
+        "src/hydramind/tools.py::MemoryService.revise",
+        "src/hydramind/tools.py::_normalize_memory_refs",
+        "src/hydramind/tools.py::MemoryService.explain_trust",
+        "src/hydramind/tools.py::MemoryService.forget",
+        "src/hydramind/tools.py::MemoryService.trace_memory",
+        "src/hydramind/tools.py::MemoryService.remember"
+      ]
+    },
+    {
+      "id": "shared-text-validation-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_require_text",
+      "max_hops": 1,
+      "expected": [
+        "src/hydramind/tools.py::_normalize_entity_refs",
+        "src/hydramind/tools.py::MemoryService.check_conflict",
+        "src/hydramind/tools.py::MemoryService.remember",
+        "src/hydramind/tools.py::MemoryService.revise",
+        "src/hydramind/tools.py::MemoryService.recall",
+        "src/hydramind/tools.py::MemoryService.timeline",
+        "src/hydramind/tools.py::MemoryService.explain_trust",
+        "src/hydramind/tools.py::MemoryService.forget",
+        "src/hydramind/tools.py::MemoryService.trace_memory"
+      ]
+    },
+    {
+      "id": "stemming-low-overlap-chain",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_stem",
+      "max_hops": 3,
+      "expected": [
+        "src/hydramind/tools.py::_keywords",
+        "src/hydramind/tools.py::keyword_overlap_score",
+        "src/hydramind/tools.py::MemoryService.recall",
+        "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+      ]
+    },
+    {
+      "id": "trust-decay-chain",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_decay",
+      "max_hops": 3,
+      "expected": [
+        "src/hydramind/tools.py::MemoryService._apply_conflict",
+        "src/hydramind/tools.py::MemoryService._propagate_derived_decay",
+        "src/hydramind/tools.py::MemoryService._resume_conflicts",
+        "src/hydramind/tools.py::MemoryService.remember",
+        "src/hydramind/tools.py::MemoryService.revise"
+      ]
+    },
+    {
+      "id": "web-input-validation-chain",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/web.py::_required_text",
+      "max_hops": 2,
+      "expected": [
+        "src/hydramind/web.py::DashboardService.seed_demo",
+        "src/hydramind/web.py::DashboardService.state",
+        "src/hydramind/web.py::_payload_text",
+        "src/hydramind/web.py::_payload_text_default",
+        "src/hydramind/web.py::_query_value",
+        "src/hydramind/web.py::HydraMindRequestHandler.do_POST",
+        "src/hydramind/web.py::HydraMindRequestHandler.do_GET"
+      ]
+    },
+    {
+      "id": "unsupported-symbol-abstention",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::not_a_real_symbol",
+      "max_hops": 3,
+      "expected": [],
+      "should_abstain": true
+    },
+    {
+      "id": "ambiguous-main-abstention",
+      "repo_id": "hydramind-eval",
+      "target": "main",
+      "max_hops": 3,
+      "expected": [],
+      "should_abstain": true
+    }
+  ]
+}

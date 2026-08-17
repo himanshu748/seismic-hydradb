@@ -1,0 +1,1 @@
+"""Small graph fixture."""

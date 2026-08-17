@@ -1,0 +1,820 @@
+{
+  "kind": "self-authored Track 02 evaluation",
+  "generated_at": "2026-08-17T10:57:36.279426+00:00",
+  "commit": "HEAD",
+  "environment": {
+    "python": "3.12.11",
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "hydradb_uri": "neo4j://127.0.0.1:7687"
+  },
+  "dataset": {
+    "path": "benchmarks/tasks.json",
+    "tasks": 12,
+    "supported_tasks": 10,
+    "abstention_tasks": 2,
+    "repositories": {
+      "hydramind-eval": {
+        "repo_id": "hydramind-eval",
+        "snapshot_id": "hydramind-eval@224ac172fa561300e19500ae19b831a9fa000d0a",
+        "commit_sha": "224ac172fa561300e19500ae19b831a9fa000d0a",
+        "files": 25,
+        "artifacts": 245,
+        "packages": 2,
+        "relationships": 445,
+        "unresolved_imports": 33,
+        "unresolved_calls": 1122,
+        "skipped_files": 0,
+        "duration_ms": 106.669,
+        "activated": true,
+        "warnings": []
+      }
+    }
+  },
+  "summary": {
+    "graph": {
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "mrr": 1.0,
+      "abstention_correct": 2,
+      "abstention_total": 2,
+      "exact_path_tasks_valid": 10,
+      "exact_path_tasks_total": 10,
+      "latency_p50_ms": 43.502,
+      "latency_p95_ms": 652.618
+    },
+    "tfidf": {
+      "precision_at_k": 0.1321,
+      "recall_at_k": 0.1321,
+      "mrr": 0.225,
+      "abstention_correct": 2,
+      "abstention_total": 2,
+      "latency_p50_ms": 0.726,
+      "latency_p95_ms": 1.375
+    },
+    "hybrid": {
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "mrr": 1.0,
+      "abstention_correct": 2,
+      "abstention_total": 2
+    }
+  },
+  "tasks": [
+    {
+      "id": "conflict-polarity-callers",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/conflict.py::detect_conflict_reason",
+      "expected": [
+        "src/hydramind/tools.py::MemoryService.check_conflict",
+        "tests/test_conflict.py::test_detects_opposite_polarity",
+        "tests/test_conflict.py::test_does_not_flag_opposite_modals_about_different_claims",
+        "tests/test_conflict.py::test_does_not_flag_unrelated_same_polarity_statements",
+        "tests/test_conflict.py::test_polarity_detection_is_symmetric",
+        "src/hydramind/tools.py::MemoryService.remember",
+        "src/hydramind/tools.py::MemoryService.revise"
+      ],
+      "limit": 7,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService.check_conflict",
+          "tests/test_conflict.py::test_detects_opposite_polarity",
+          "tests/test_conflict.py::test_does_not_flag_opposite_modals_about_different_claims",
+          "tests/test_conflict.py::test_does_not_flag_unrelated_same_polarity_statements",
+          "tests/test_conflict.py::test_polarity_detection_is_symmetric",
+          "src/hydramind/tools.py::MemoryService.remember",
+          "src/hydramind/tools.py::MemoryService.revise"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 86.068
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/conflict.py",
+          "src/hydramind/conflict.py::_generic_negation_reason",
+          "src/hydramind/conflict.py::_normalize",
+          "tests/test_conflict.py::test_detects_opposite_polarity",
+          "src/hydramind/conflict.py::PolarityPair",
+          "src/hydramind/conflict.py::_pattern",
+          "tests/test_conflict.py"
+        ],
+        "scores": [
+          0.457223,
+          0.162022,
+          0.14031,
+          0.102594,
+          0.094465,
+          0.076752,
+          0.075478
+        ],
+        "precision_at_k": 0.1429,
+        "recall_at_k": 0.1429,
+        "mrr": 0.25,
+        "abstention_correct": false,
+        "latency_ms": 1.843
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService.check_conflict",
+          "tests/test_conflict.py::test_detects_opposite_polarity",
+          "tests/test_conflict.py::test_does_not_flag_opposite_modals_about_different_claims",
+          "tests/test_conflict.py::test_does_not_flag_unrelated_same_polarity_statements",
+          "tests/test_conflict.py::test_polarity_detection_is_symmetric",
+          "src/hydramind/tools.py::MemoryService.remember",
+          "src/hydramind/tools.py::MemoryService.revise"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "keyword-score-consumers",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::keyword_overlap_score",
+      "expected": [
+        "src/hydramind/tools.py::MemoryService.recall",
+        "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+      ],
+      "limit": 2,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService.recall",
+          "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 16.956
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/tools.py::_keywords",
+          "src/hydramind/tools.py::_decay"
+        ],
+        "scores": [
+          0.105213,
+          0.094649
+        ],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": false,
+        "latency_ms": 0.787
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService.recall",
+          "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "http-entrypoint-proof",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/server.py::http_main",
+      "expected": [
+        "pyproject.toml::script::hydramind-http",
+        "tests/test_server.py::test_http_entrypoint_forces_stateless_json_transport"
+      ],
+      "limit": 2,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "pyproject.toml::script::hydramind-http",
+          "tests/test_server.py::test_http_entrypoint_forces_stateless_json_transport"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 17.259
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/server.py",
+          "tests/test_server.py::test_http_entrypoint_forces_stateless_json_transport"
+        ],
+        "scores": [
+          0.34699,
+          0.273724
+        ],
+        "precision_at_k": 0.5,
+        "recall_at_k": 0.5,
+        "mrr": 0.5,
+        "abstention_correct": false,
+        "latency_ms": 0.715
+      },
+      "hybrid": {
+        "retrieved": [
+          "pyproject.toml::script::hydramind-http",
+          "tests/test_server.py::test_http_entrypoint_forces_stateless_json_transport"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "dashboard-service-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/web.py::DashboardService",
+      "expected": [
+        "src/hydramind/web.py::main",
+        "tests/test_web.py::test_dashboard_state_exposes_temporal_memories_and_revision_edges",
+        "tests/test_web.py::test_seed_demo_showcases_revision_history",
+        "pyproject.toml::script::hydramind-ui"
+      ],
+      "limit": 4,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/web.py::main",
+          "tests/test_web.py::test_dashboard_state_exposes_temporal_memories_and_revision_edges",
+          "tests/test_web.py::test_seed_demo_showcases_revision_history",
+          "pyproject.toml::script::hydramind-ui"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 28.862
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/web.py::DashboardService.state",
+          "src/hydramind/web.py",
+          "src/hydramind/web.py::DashboardService.seed_demo",
+          "src/hydramind/tools.py::MemoryService.timeline"
+        ],
+        "scores": [
+          0.824411,
+          0.572838,
+          0.52365,
+          0.299683
+        ],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": false,
+        "latency_ms": 0.977
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/web.py::main",
+          "tests/test_web.py::test_dashboard_state_exposes_temporal_memories_and_revision_edges",
+          "tests/test_web.py::test_seed_demo_showcases_revision_history",
+          "pyproject.toml::script::hydramind-ui"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "database-constructor-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/db.py::HydraDB",
+      "expected": [
+        "benchmarks/product_stress.py::run_stress",
+        "examples/demo.py::run_demo",
+        "src/hydramind/web.py::main",
+        "benchmarks/track03_eval.py::main",
+        "src/hydramind/server.py::hydramind_lifespan",
+        "tests/conftest.py::live_db",
+        "tests/test_db.py::test_query_uses_hydradb_compatible_autocommit_run",
+        "tests/test_db.py::test_unreachable_database_has_a_clear_uri_and_auth_hint",
+        "tests/test_hardening.py::test_invalid_uri_is_reported_as_a_hydramind_error"
+      ],
+      "limit": 9,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "benchmarks/product_stress.py::run_stress",
+          "benchmarks/track03_eval.py::main",
+          "examples/demo.py::run_demo",
+          "src/hydramind/server.py::hydramind_lifespan",
+          "src/hydramind/web.py::main",
+          "tests/conftest.py::live_db",
+          "tests/test_db.py::test_query_uses_hydradb_compatible_autocommit_run",
+          "tests/test_db.py::test_unreachable_database_has_a_clear_uri_and_auth_hint",
+          "tests/test_hardening.py::test_invalid_uri_is_reported_as_a_hydramind_error"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 45.179
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/db.py",
+          "src/hydramind/db.py::HydraDB.verify_connection",
+          "src/hydramind/db.py::HydraDB.query",
+          "src/hydramind/db.py::HydraDB.__init__",
+          "src/hydramind/db.py::HydraDB.execute_write",
+          "src/hydramind/db.py::HydraDB.setup_schema",
+          "src/hydramind/db.py::HydraDB.close",
+          "tests/test_db.py",
+          "tests/test_db.py::FakeSession"
+        ],
+        "scores": [
+          0.837631,
+          0.541408,
+          0.509018,
+          0.492768,
+          0.358812,
+          0.289263,
+          0.246198,
+          0.18135,
+          0.159187
+        ],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": false,
+        "latency_ms": 0.991
+      },
+      "hybrid": {
+        "retrieved": [
+          "benchmarks/product_stress.py::run_stress",
+          "benchmarks/track03_eval.py::main",
+          "examples/demo.py::run_demo",
+          "src/hydramind/server.py::hydramind_lifespan",
+          "src/hydramind/web.py::main",
+          "tests/conftest.py::live_db",
+          "tests/test_db.py::test_query_uses_hydradb_compatible_autocommit_run",
+          "tests/test_db.py::test_unreachable_database_has_a_clear_uri_and_auth_hint",
+          "tests/test_hardening.py::test_invalid_uri_is_reported_as_a_hydramind_error"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "memory-id-validation-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_parse_memory_id",
+      "expected": [
+        "src/hydramind/tools.py::MemoryService._resume_conflicts",
+        "src/hydramind/tools.py::MemoryService.revise",
+        "src/hydramind/tools.py::_normalize_memory_refs",
+        "src/hydramind/tools.py::MemoryService.explain_trust",
+        "src/hydramind/tools.py::MemoryService.forget",
+        "src/hydramind/tools.py::MemoryService.trace_memory",
+        "src/hydramind/tools.py::MemoryService.remember"
+      ],
+      "limit": 7,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService._resume_conflicts",
+          "src/hydramind/tools.py::MemoryService.revise",
+          "src/hydramind/tools.py::_normalize_memory_refs",
+          "src/hydramind/tools.py::MemoryService.explain_trust",
+          "src/hydramind/tools.py::MemoryService.forget",
+          "src/hydramind/tools.py::MemoryService.trace_memory",
+          "src/hydramind/tools.py::MemoryService.remember"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 43.712
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/tools.py::_bounded_env_int",
+          "work/hydradb-upstream/scripts/bolt_graphblas_client.py::positive_int",
+          "src/hydramind/web.py::HydraMindRequestHandler._read_json",
+          "src/hydramind/web.py::_bounded_env_int",
+          "src/hydramind/server.py::_bounded_int",
+          "src/hydramind/web.py::_payload_text",
+          "src/hydramind/web.py::_payload_text_default"
+        ],
+        "scores": [
+          0.192832,
+          0.174641,
+          0.16308,
+          0.150152,
+          0.148142,
+          0.124811,
+          0.118748
+        ],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": false,
+        "latency_ms": 0.692
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService._resume_conflicts",
+          "src/hydramind/tools.py::MemoryService.revise",
+          "src/hydramind/tools.py::_normalize_memory_refs",
+          "src/hydramind/tools.py::MemoryService.explain_trust",
+          "src/hydramind/tools.py::MemoryService.forget",
+          "src/hydramind/tools.py::MemoryService.trace_memory",
+          "src/hydramind/tools.py::MemoryService.remember"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "shared-text-validation-reach",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_require_text",
+      "expected": [
+        "src/hydramind/tools.py::_normalize_entity_refs",
+        "src/hydramind/tools.py::MemoryService.check_conflict",
+        "src/hydramind/tools.py::MemoryService.remember",
+        "src/hydramind/tools.py::MemoryService.revise",
+        "src/hydramind/tools.py::MemoryService.recall",
+        "src/hydramind/tools.py::MemoryService.timeline",
+        "src/hydramind/tools.py::MemoryService.explain_trust",
+        "src/hydramind/tools.py::MemoryService.forget",
+        "src/hydramind/tools.py::MemoryService.trace_memory"
+      ],
+      "limit": 9,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService.check_conflict",
+          "src/hydramind/tools.py::MemoryService.explain_trust",
+          "src/hydramind/tools.py::MemoryService.forget",
+          "src/hydramind/tools.py::MemoryService.recall",
+          "src/hydramind/tools.py::MemoryService.remember",
+          "src/hydramind/tools.py::MemoryService.revise",
+          "src/hydramind/tools.py::MemoryService.timeline",
+          "src/hydramind/tools.py::MemoryService.trace_memory",
+          "src/hydramind/tools.py::_normalize_entity_refs"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 44.045
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/web.py::_required_text",
+          "src/hydramind/tools.py::_bounded_env_int",
+          "src/hydramind/web.py::_payload_text",
+          "src/hydramind/web.py::_payload_text_default",
+          "src/hydramind/web.py::_bounded_env_int",
+          "src/hydramind/server.py::_bounded_int",
+          "src/hydramind/web.py::_payload_string_list",
+          "src/hydramind/web.py::HydraMindRequestHandler._read_json",
+          "src/hydramind/web.py"
+        ],
+        "scores": [
+          0.399812,
+          0.283903,
+          0.249213,
+          0.237235,
+          0.210932,
+          0.208108,
+          0.203773,
+          0.150529,
+          0.146579
+        ],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": false,
+        "latency_ms": 0.681
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService.check_conflict",
+          "src/hydramind/tools.py::MemoryService.explain_trust",
+          "src/hydramind/tools.py::MemoryService.forget",
+          "src/hydramind/tools.py::MemoryService.recall",
+          "src/hydramind/tools.py::MemoryService.remember",
+          "src/hydramind/tools.py::MemoryService.revise",
+          "src/hydramind/tools.py::MemoryService.timeline",
+          "src/hydramind/tools.py::MemoryService.trace_memory",
+          "src/hydramind/tools.py::_normalize_entity_refs"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "stemming-low-overlap-chain",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_stem",
+      "expected": [
+        "src/hydramind/tools.py::_keywords",
+        "src/hydramind/tools.py::keyword_overlap_score",
+        "src/hydramind/tools.py::MemoryService.recall",
+        "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+      ],
+      "limit": 4,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/tools.py::_keywords",
+          "src/hydramind/tools.py::keyword_overlap_score",
+          "src/hydramind/tools.py::MemoryService.recall",
+          "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 25.471
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/tools.py::_keywords",
+          "src/hydramind/db.py::HydraDB.verify_connection",
+          "src/hydramind/tools.py::_require_text",
+          "src/hydramind/tools.py::_normalize_entity_refs"
+        ],
+        "scores": [
+          0.186599,
+          0.072734,
+          0.071041,
+          0.062562
+        ],
+        "precision_at_k": 0.25,
+        "recall_at_k": 0.25,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "latency_ms": 0.899
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/tools.py::_keywords",
+          "src/hydramind/tools.py::keyword_overlap_score",
+          "src/hydramind/tools.py::MemoryService.recall",
+          "tests/test_scoring.py::test_keyword_overlap_is_transparent_and_bounded"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "trust-decay-chain",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::_decay",
+      "expected": [
+        "src/hydramind/tools.py::MemoryService._apply_conflict",
+        "src/hydramind/tools.py::MemoryService._propagate_derived_decay",
+        "src/hydramind/tools.py::MemoryService._resume_conflicts",
+        "src/hydramind/tools.py::MemoryService.remember",
+        "src/hydramind/tools.py::MemoryService.revise"
+      ],
+      "limit": 5,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService._apply_conflict",
+          "src/hydramind/tools.py::MemoryService._propagate_derived_decay",
+          "src/hydramind/tools.py::MemoryService._resume_conflicts",
+          "src/hydramind/tools.py::MemoryService.remember",
+          "src/hydramind/tools.py::MemoryService.revise"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 30.642
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/tools.py::keyword_overlap_score",
+          "benchmarks/product_stress.py::_percentile",
+          "src/hydramind/tools.py::_json_scalar",
+          "src/hydramind/tools.py::_entity_id",
+          "src/hydramind/tools.py::_utc_now"
+        ],
+        "scores": [
+          0.094649,
+          0.088526,
+          0.084752,
+          0.081852,
+          0.080452
+        ],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": false,
+        "latency_ms": 0.682
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/tools.py::MemoryService._apply_conflict",
+          "src/hydramind/tools.py::MemoryService._propagate_derived_decay",
+          "src/hydramind/tools.py::MemoryService._resume_conflicts",
+          "src/hydramind/tools.py::MemoryService.remember",
+          "src/hydramind/tools.py::MemoryService.revise"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "web-input-validation-chain",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/web.py::_required_text",
+      "expected": [
+        "src/hydramind/web.py::DashboardService.seed_demo",
+        "src/hydramind/web.py::DashboardService.state",
+        "src/hydramind/web.py::_payload_text",
+        "src/hydramind/web.py::_payload_text_default",
+        "src/hydramind/web.py::_query_value",
+        "src/hydramind/web.py::HydraMindRequestHandler.do_POST",
+        "src/hydramind/web.py::HydraMindRequestHandler.do_GET"
+      ],
+      "limit": 7,
+      "should_abstain": false,
+      "graph": {
+        "retrieved": [
+          "src/hydramind/web.py::DashboardService.seed_demo",
+          "src/hydramind/web.py::DashboardService.state",
+          "src/hydramind/web.py::_payload_text",
+          "src/hydramind/web.py::_payload_text_default",
+          "src/hydramind/web.py::_query_value",
+          "src/hydramind/web.py::HydraMindRequestHandler.do_POST",
+          "src/hydramind/web.py::HydraMindRequestHandler.do_GET"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false,
+        "exact_paths_valid": true,
+        "latency_ms": 43.291
+      },
+      "tfidf": {
+        "retrieved": [
+          "src/hydramind/tools.py::_require_text",
+          "src/hydramind/web.py::_payload_text",
+          "src/hydramind/web.py::_payload_text_default",
+          "src/hydramind/web.py::_query_value",
+          "src/hydramind/web.py::_payload_string_list",
+          "src/hydramind/web.py::_bounded_env_int",
+          "src/hydramind/tools.py::_bounded_env_int"
+        ],
+        "scores": [
+          0.399812,
+          0.366277,
+          0.348578,
+          0.223343,
+          0.205342,
+          0.200975,
+          0.198239
+        ],
+        "precision_at_k": 0.4286,
+        "recall_at_k": 0.4286,
+        "mrr": 0.5,
+        "abstention_correct": false,
+        "latency_ms": 0.737
+      },
+      "hybrid": {
+        "retrieved": [
+          "src/hydramind/web.py::DashboardService.seed_demo",
+          "src/hydramind/web.py::DashboardService.state",
+          "src/hydramind/web.py::_payload_text",
+          "src/hydramind/web.py::_payload_text_default",
+          "src/hydramind/web.py::_query_value",
+          "src/hydramind/web.py::HydraMindRequestHandler.do_POST",
+          "src/hydramind/web.py::HydraMindRequestHandler.do_GET"
+        ],
+        "precision_at_k": 1.0,
+        "recall_at_k": 1.0,
+        "mrr": 1.0,
+        "abstention_correct": false
+      },
+      "warnings": [],
+      "unresolved_targets": []
+    },
+    {
+      "id": "unsupported-symbol-abstention",
+      "repo_id": "hydramind-eval",
+      "target": "src/hydramind/tools.py::not_a_real_symbol",
+      "expected": [],
+      "limit": 1,
+      "should_abstain": true,
+      "graph": {
+        "retrieved": [],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": true,
+        "exact_paths_valid": true,
+        "latency_ms": 658.369
+      },
+      "tfidf": {
+        "retrieved": [],
+        "scores": [],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": true,
+        "latency_ms": 0.003
+      },
+      "hybrid": {
+        "retrieved": [],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": true
+      },
+      "warnings": [],
+      "unresolved_targets": [
+        "src/hydramind/tools.py::not_a_real_symbol"
+      ]
+    },
+    {
+      "id": "ambiguous-main-abstention",
+      "repo_id": "hydramind-eval",
+      "target": "main",
+      "expected": [],
+      "limit": 1,
+      "should_abstain": true,
+      "graph": {
+        "retrieved": [],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": true,
+        "exact_paths_valid": true,
+        "latency_ms": 647.913
+      },
+      "tfidf": {
+        "retrieved": [],
+        "scores": [],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": true,
+        "latency_ms": 0.002
+      },
+      "hybrid": {
+        "retrieved": [],
+        "precision_at_k": 0.0,
+        "recall_at_k": 0.0,
+        "mrr": 0.0,
+        "abstention_correct": true
+      },
+      "warnings": [
+        "Ambiguous target main; candidates: benchmarks/product_stress.py::main, benchmarks/track03_eval.py::main, examples/demo.py::main, src/hydramind/server.py::main, src/hydramind/web.py::main, videos/hydramind-judge-demo/scripts/generate_murf_audio.py::main"
+      ],
+      "unresolved_targets": [
+        "main"
+      ]
+    }
+  ]
+}

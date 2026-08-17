@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "seismic-hydradb"
+version = "0.1.0"
+description = "Graph-native change intelligence for coding agents, backed by HydraDB."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Himanshu Kumar" }]
+dependencies = [
+  "fastapi>=0.115,<1",
+  "mcp>=2,<3",
+  "neo4j>=5.28,<7",
+  "pydantic>=2.10,<3",
+  "uvicorn>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "mypy>=1.17,<2",
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<8",
+  "ruff>=0.12,<1",
+  "scikit-learn>=1.6,<2",
+]
+
+[project.scripts]
+seismic = "seismic.server:main"
+seismic-http = "seismic.server:http_main"
+seismic-web = "seismic.web:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/seismic"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"ui/dist" = "seismic/ui"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+pythonpath = ["src"]
+testpaths = ["tests"]
+norecursedirs = ["tests/fixtures"]
+markers = [
+  "integration: requires a live HydraDB Bolt endpoint",
+  "browser: requires a built UI and browser runtime",
+]
+
+[tool.coverage.run]
+source = ["seismic"]
+omit = ["src/seismic/__main__.py", "src/seismic/web.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
