@@ -1,4 +1,6 @@
 node_modules
 public/audio/*.aiff
+public/audio/*.wav
+public/audio/murf-audio-meta.json
 renders/
 stills/
