@@ -12,10 +12,10 @@ export const BlindSpotScene: React.FC<{duration: number}> = ({duration}) => {
       <div style={{marginTop: 36, maxWidth: 680, color: COLORS.muted, fontSize: 28, lineHeight: 1.4}}>Agents need the caller, test and entry point behind every impact claim.</div>
     </div>
     <div style={{position: "absolute", right: 90, top: 236, width: 640, height: 600, opacity: split}}>
-      <Node x={0} y={210} label="calculate" kind="CHANGE" active delay={80}/>
-      <Node x={390} y={40} label="test_checkout" kind="TEST" delay={110}/>
-      <Node x={390} y={210} label="total" kind="FUNCTION" active delay={122}/>
-      <Node x={390} y={380} label="handler" kind="ENTRYPOINT" delay={134}/>
+      <Node x={0} y={210} label="_bounded_int" kind="CHANGE" active delay={80}/>
+      <Node x={390} y={40} label="transport test" kind="TEST" delay={110}/>
+      <Node x={390} y={210} label="http_main" kind="CALLER" active delay={122}/>
+      <Node x={390} y={380} label="seismic-http" kind="ENTRYPOINT" delay={134}/>
       <Edge x1={214} y1={254} x2={390} y2={84} label="TESTS" delay={108}/>
       <Edge x1={214} y1={254} x2={390} y2={254} label="CALLS" active delay={120}/>
       <Edge x1={214} y1={254} x2={390} y2={424} label="CALLS" delay={132}/>

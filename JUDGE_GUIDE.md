@@ -7,11 +7,12 @@ Seismic gives coding agents a proof-carrying change gate before they edit code. 
 ## What to inspect first
 
 1. Open the dashboard at `http://127.0.0.1:8791/app`.
-2. Select **Paste diff** and run the prefilled pricing patch in the seeded `seismic` repository.
-3. Show the `review` decision, required test and affected CLI entrypoint.
-4. Select an affected result to see the exact graph path.
-5. Compare the risk score components and incident evidence.
-6. Open `src/seismic/gate.py` and `src/seismic/tools.py` to inspect the policy and native path calls.
+2. Keep repository ID `seismic`, enter the absolute path to this checkout and select **Index repository**.
+3. Select **Paste diff** and run the prefilled `server.py` patch.
+4. Show the `review` decision, required transport test and affected `seismic-http` entrypoint.
+5. Select an affected result to see the exact graph path.
+6. Compare the risk score components and incident evidence.
+7. Open `src/seismic/gate.py` and `src/seismic/tools.py` to inspect the policy and native path calls.
 
 ## Why HydraDB is essential
 
@@ -24,6 +25,18 @@ Seismic gives coding agents a proof-carrying change gate before they edit code. 
 
 Replacing HydraDB with a vector store would remove the dependency direction, bounded path proof, multi-hop reachability and stable cross-snapshot incident graph.
 
+## Judging scorecard
+
+| Criterion | Evidence to verify |
+|---|---|
+| Technical execution | 19 passing tests, strict MyPy, Ruff and real stdio plus sessionless HTTP MCP clients |
+| Graph-native HydraDB use | Three native path procedures, immutable snapshots, typed relationships and stable incident identities |
+| Completeness and usability | Unified-diff change gate, seven MCP tools, local dashboard, clear startup errors and conservative abstention |
+| Result quality | 10/10 exact-path tasks, 2/2 abstentions, 49 valid impacts across three real repositories and 25/25 exact stress recoveries |
+| Originality | A proof-carrying pre-edit gate that returns tests, entrypoints and inspectable dependency paths instead of similarity-only context |
+
+Best Use of HydraDB test: remove HydraDB and the core decision cannot be produced. HydraDB is both the durable system of record and the native path engine behind every supported gate action.
+
 ## Three-minute demo
 
 ### 0:00 to 0:25, problem
@@ -32,7 +45,7 @@ Show the landing page. Explain that an agent can find similar code yet still mis
 
 ### 0:25 to 1:15, exact blast radius
 
-Open the analyzer, select **Paste diff** and submit the prefilled unified diff. Show how Seismic resolves the changed line to `pricing.calculate`, then returns `review`, `test_total` and the `sample` entrypoint. Select the service handler and trace `calculate` to `total` to `handler` on the graph.
+Open the analyzer, index the Seismic checkout, select **Paste diff** and submit the prefilled unified diff. Show how Seismic resolves the changed line to `_bounded_int`, then returns `review`, `test_http_entrypoint_forces_stateless_json_transport` and the `seismic-http` entrypoint. Select the entrypoint and trace the exact path through `http_main` on the graph.
 
 ### 1:15 to 1:45, decision through evidence
 
@@ -65,6 +78,10 @@ Current test split: 16 fast tests and 3 live integration tests.
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m benchmarks.track02_eval
+PYTHONPATH=src .venv/bin/python -m benchmarks.real_repo_smoke \
+  --repo hydramind=/path/to/hydramind \
+  --repo omnidev=/path/to/omnidev \
+  --repo blastradius=/path/to/blastradius
 PYTHONPATH=src .venv/bin/python -m benchmarks.stress --queries 25
 ```
 

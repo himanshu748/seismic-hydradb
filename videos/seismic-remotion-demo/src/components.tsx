@@ -10,12 +10,18 @@ export const Frame: React.FC<{children: ReactNode; duration: number; index: numb
   const driftScale = 1.004 + Math.sin(frame / 118) * 0.0025;
   const glowX = 46 + Math.sin(frame / 86) * 24;
   const glowY = 42 + Math.cos(frame / 111) * 18;
+  const sceneOpacity = interpolate(
+    frame,
+    [0, 10, Math.max(11, duration - 10), duration - 1],
+    [0, 1, 1, 0],
+    {extrapolateLeft: "clamp", extrapolateRight: "clamp"},
+  );
   return (
-    <div style={{position: "absolute", inset: 0, overflow: "hidden", background: COLORS.graphite, color: COLORS.paper, fontFamily: "Seismic Sans"}}>
+    <div style={{position: "absolute", inset: 0, overflow: "hidden", background: COLORS.graphite, color: COLORS.paper, fontFamily: "Seismic Sans", opacity: sceneOpacity}}>
       <SurveyGrid frame={frame} />
       <div style={{position: "absolute", inset: -180, background: `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,90,36,.065), transparent 34%)`, filter: "blur(20px)", opacity: 0.72}} />
       <div style={{position: "absolute", left: 0, right: 0, top: (frame * 1.8) % 1240 - 140, height: 140, background: "linear-gradient(to bottom, transparent, rgba(255,90,36,.026), transparent)", zIndex: 0}} />
-      <div style={{position: "absolute", inset: 0, zIndex: 1, transform: `translate3d(${driftX}px, ${driftY}px, 0) scale(${driftScale})`, transformOrigin: "50% 48%"}}>{children}</div>
+      <div style={{position: "absolute", inset: 0, zIndex: 1, translate: `${driftX}px ${driftY}px`, scale: driftScale, transformOrigin: "50% 48%"}}>{children}</div>
       <div style={{position: "absolute", left: 86, top: 48, width: 1748, height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 1000}}>
         <Brand />
         <div style={{display: "flex", gap: 18, alignItems: "center", fontFamily: "Seismic Mono", fontSize: 15, letterSpacing: "0.12em", color: COLORS.muted}}>
@@ -81,7 +87,7 @@ export const Edge: React.FC<{x1: number; y1: number; x2: number; y2: number; lab
   </>;
 };
 
-export const Terminal: React.FC<{lines: Array<{text: string; tone?: string}>; revealAt?: number; style?: CSSProperties}> = ({lines, revealAt = 0, style}) => {
+export const Terminal: React.FC<{lines: Array<{text: string; tone?: string}>; revealAt?: number; stepFrames?: number; style?: CSSProperties}> = ({lines, revealAt = 0, stepFrames = 17, style}) => {
   const frame = useCurrentFrame();
   return <Panel style={{overflow: "hidden", ...style}}>
     <div style={{height: 44, borderBottom: `1px solid ${COLORS.border}`, display: "flex", alignItems: "center", gap: 8, padding: "0 16px"}}>
@@ -89,7 +95,7 @@ export const Terminal: React.FC<{lines: Array<{text: string; tone?: string}>; re
       <span style={{marginLeft: 10, color: COLORS.muted, fontFamily: "Seismic Mono", fontSize: 13}}>agent / seismic</span>
     </div>
     <div style={{padding: "24px 28px", fontFamily: "Seismic Mono", fontSize: 18, lineHeight: 1.8}}>
-      {lines.map((line, index) => <div key={`${index}-${line.text}`} style={{color: line.tone ?? COLORS.paper, opacity: ease(frame, revealAt + index * 17, 12), translate: `${interpolate(ease(frame, revealAt + index * 17, 12), [0,1], [12,0])}px 0`}}>{line.text}</div>)}
+      {lines.map((line, index) => <div key={`${index}-${line.text}`} style={{color: line.tone ?? COLORS.paper, opacity: ease(frame, revealAt + index * stepFrames, 12), translate: `${interpolate(ease(frame, revealAt + index * stepFrames, 12), [0,1], [12,0])}px 0`}}>{line.text}</div>)}
     </div>
   </Panel>;
 };

@@ -7,6 +7,12 @@ if (!apiKey) {
 }
 
 const voiceId = process.env.MURF_VOICE_ID ?? "en-US-terrell";
+const selectedScenes = new Set(
+  (process.env.MURF_SCENES ?? "1,2,3,4,5,6,7")
+    .split(",")
+    .map((value) => Number.parseInt(value.trim(), 10))
+    .filter((value) => Number.isInteger(value) && value >= 1 && value <= 7),
+);
 const scriptPath = resolve("SCRIPT.md");
 const outputDirectory = resolve("public/audio");
 const script = await readFile(scriptPath, "utf8");
@@ -20,9 +26,20 @@ if (scenes.length !== 7) {
 }
 
 await mkdir(outputDirectory, {recursive: true});
-const metadata = [];
+let previousMetadata = [];
+try {
+  const current = JSON.parse(await readFile(resolve(outputDirectory, "murf-audio-meta.json"), "utf8"));
+  previousMetadata = Array.isArray(current.scenes) ? current.scenes : [];
+} catch {
+  previousMetadata = [];
+}
+const metadata = previousMetadata.filter((item) => !selectedScenes.has(item.scene));
 
 for (const [index, text] of scenes.entries()) {
+  const sceneNumber = index + 1;
+  if (!selectedScenes.has(sceneNumber)) {
+    continue;
+  }
   const response = await fetch("https://api.murf.ai/v1/speech/generate", {
     method: "POST",
     headers: {
@@ -45,24 +62,26 @@ for (const [index, text] of scenes.entries()) {
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`Murf scene ${index + 1} failed with HTTP ${response.status}: ${detail}`);
+    throw new Error(`Murf scene ${sceneNumber} failed with HTTP ${response.status}: ${detail}`);
   }
 
   const result = await response.json();
   if (!result.encodedAudio) {
-    throw new Error(`Murf scene ${index + 1} returned no encoded audio.`);
+    throw new Error(`Murf scene ${sceneNumber} returned no encoded audio.`);
   }
 
-  const fileName = `${String(index + 1).padStart(2, "0")}.wav`;
+  const fileName = `${String(sceneNumber).padStart(2, "0")}.wav`;
   await writeFile(resolve(outputDirectory, fileName), Buffer.from(result.encodedAudio, "base64"));
   metadata.push({
-    scene: index + 1,
+    scene: sceneNumber,
     file: fileName,
     duration_seconds: result.audioLengthInSeconds,
     voice_id: voiceId,
   });
-  process.stdout.write(`Generated scene ${index + 1}: ${result.audioLengthInSeconds}s\n`);
+  process.stdout.write(`Generated scene ${sceneNumber}: ${result.audioLengthInSeconds}s\n`);
 }
+
+metadata.sort((left, right) => left.scene - right.scene);
 
 await writeFile(
   resolve(outputDirectory, "murf-audio-meta.json"),

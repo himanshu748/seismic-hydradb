@@ -30,13 +30,13 @@ import type {
 } from "./types";
 
 const DEFAULT_REPO_ID = "seismic";
-const DEFAULT_TARGET = "src/sample_app/pricing.py::calculate";
-const DEFAULT_DIFF = `diff --git a/src/sample_app/pricing.py b/src/sample_app/pricing.py
---- a/src/sample_app/pricing.py
-+++ b/src/sample_app/pricing.py
-@@ -7 +7 @@
--    return subtotal * 1.1
-+    return subtotal * 1.2`;
+const DEFAULT_TARGET = "src/seismic/server.py::_bounded_int";
+const DEFAULT_DIFF = `diff --git a/src/seismic/server.py b/src/seismic/server.py
+--- a/src/seismic/server.py
++++ b/src/seismic/server.py
+@@ -199 +199 @@
+-    raw = os.getenv(name)
++    raw = os.getenv(name, "").strip() or None`;
 
 export default function App() {
   const [health, setHealth] = useState<Health | null>(null);

@@ -13,12 +13,12 @@ export const GraphBuildScene: React.FC<{duration: number}> = ({duration}) => {
       </div>
     </div>
     <Panel style={{position: "absolute", right: 90, top: 170, width: 910, height: 720, opacity: ease(frame, 35), translate: `${interpolate(ease(frame,35),[0,1],[50,0])}px 0`}}>
-      <div style={{position: "absolute", left: 36, top: 26, fontFamily: "Seismic Mono", fontSize: 15, color: COLORS.verified}}>HYDRADB / ACTIVE SNAPSHOT 8d42fa1</div>
-      <Node x={48} y={135} label="pricing.py" kind="FILE" delay={52}/>
-      <Node x={348} y={70} label="calculate" kind="FUNCTION" active delay={72}/>
-      <Node x={348} y={260} label="total" kind="FUNCTION" delay={92}/>
-      <Node x={648} y={110} label="handler" kind="ENTRYPOINT" delay={112}/>
-      <Node x={648} y={355} label="test_total" kind="TEST" delay={132}/>
+      <div style={{position: "absolute", left: 36, top: 26, fontFamily: "Seismic Mono", fontSize: 15, color: COLORS.verified}}>HYDRADB / ACTIVE SNAPSHOT 9015879B1A</div>
+      <Node x={48} y={135} label="server.py" kind="FILE" delay={52}/>
+      <Node x={348} y={70} label="_bounded_int" kind="FUNCTION" active delay={72}/>
+      <Node x={348} y={260} label="http_main" kind="FUNCTION" delay={92}/>
+      <Node x={648} y={110} label="seismic-http" kind="ENTRYPOINT" delay={112}/>
+      <Node x={648} y={355} label="transport test" kind="TEST" delay={132}/>
       <Edge x1={262} y1={179} x2={348} y2={114} label="PART_OF" delay={66}/>
       <Edge x1={455} y1={158} x2={455} y2={260} label="CALLS" active delay={88}/>
       <Edge x1={562} y1={304} x2={648} y2={154} label="STARTS_AT" delay={106}/>

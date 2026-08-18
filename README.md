@@ -79,7 +79,9 @@ export SEISMIC_ALLOWED_ROOTS=/absolute/path/to/your/repos
 
 Open [http://127.0.0.1:8791](http://127.0.0.1:8791). Index an allowed Git checkout, then enter a symbol or select **Paste diff** to run the agent change gate on `git diff --unified=0` output.
 
-![Seismic live analyzer showing a HydraDB change gate](docs/assets/dashboard-change-gate.jpg)
+For the shortest judge path, keep the repository ID as `seismic`, enter the absolute path to this Seismic checkout and select **Index repository**. The prefilled diff changes `src/seismic/server.py::_bounded_int`. Running it returns `review`, the exact `test_http_entrypoint_forces_stateless_json_transport` test and the affected `seismic-http` entrypoint from HydraDB path evidence.
+
+![Seismic analyzing its own HTTP entrypoint through a HydraDB change gate](docs/assets/dashboard-self-analysis.png)
 
 ### Attach a coding agent over stdio
 
@@ -217,6 +219,17 @@ Current local result:
 | Graph-first hybrid | 1.0000 | 1.0000 | 1.0000 | 2/2 |
 
 All 10 supported graph tasks also passed the exact path structure check. This is a self-authored track smoke, not an official hackathon score or a substitute for a large public benchmark.
+
+### Real-repository portability smoke
+
+```bash
+PYTHONPATH=src .venv/bin/python -m benchmarks.real_repo_smoke \
+  --repo hydramind=/path/to/hydramind \
+  --repo omnidev=/path/to/omnidev \
+  --repo blastradius=/path/to/blastradius
+```
+
+The checked-in [raw result](benchmarks/results/real-repositories.json) indexes three public Python repositories owned by the author. Before querying, the runner deterministically selects the function or class with the most direct incoming dependency edges. All three repositories returned supported impacts: 49 in total, with every returned evidence path passing the structural validity check. This is a portability smoke, not a claim that every Python construct is resolved.
 
 ### Deterministic stress proof
 

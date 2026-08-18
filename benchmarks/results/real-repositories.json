@@ -1,0 +1,185 @@
+{
+  "kind": "real repository portability smoke",
+  "generated_at": "2026-08-18T06:57:24.626180+00:00",
+  "seismic_commit": "9015879b1af9e617513612ecd378b97b530add84",
+  "environment": {
+    "python": "3.12.11",
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "hydradb_uri": "neo4j://127.0.0.1:7687"
+  },
+  "summary": {
+    "repositories_indexed": 3,
+    "repositories_with_supported_impacts": 3,
+    "supported_impacts": 49,
+    "all_returned_paths_valid": true
+  },
+  "repositories": [
+    {
+      "repo_id": "real-hydramind-public",
+      "commit_sha": "6a94c0c6bc5875b18324e0942c8fd767698ad4b7",
+      "artifacts": 226,
+      "relationships": 414,
+      "selection_strategy": "highest direct incoming dependency edge count",
+      "candidate_targets_considered": 80,
+      "selected_target": "src/hydramind/tools.py::MemoryService",
+      "gate_decision": "review",
+      "supported_impacts": 14,
+      "exact_paths_valid": true,
+      "sample_impacts": [
+        {
+          "logical_key": "benchmarks/track03_eval.py::run_track03_evaluation",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "benchmarks/product_stress.py::run_stress",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "examples/demo.py::run_demo",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "src/hydramind/server.py::hydramind_lifespan",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "src/hydramind/web.py::DashboardService.__init__",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/conftest.py::integration_context",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_hardening.py::test_coordinated_write_deduplicates_colliding_lock_stripes",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_hardening.py::test_idempotent_retry_repairs_interrupted_graph_write",
+          "kind": "test",
+          "hop_distance": 1
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "repo_id": "real-omnidev-public",
+      "commit_sha": "5e9928f02d925062a5431608bb33802b90b66b1c",
+      "artifacts": 980,
+      "relationships": 1310,
+      "selection_strategy": "highest direct incoming dependency edge count",
+      "candidate_targets_considered": 161,
+      "selected_target": "backend/app/services/knowledge_service.py::_connect",
+      "gate_decision": "review",
+      "supported_impacts": 15,
+      "exact_paths_valid": true,
+      "sample_impacts": [
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_load_new_rows_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_add_source_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_chat_documents_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_delete_everything_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_delete_source_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_existing_files_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_fetch_chunks_sync",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "backend/app/services/knowledge_service.py::_finish_source_sync",
+          "kind": "function",
+          "hop_distance": 1
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "repo_id": "real-blastradius-public",
+      "commit_sha": "9ece96c72a62eb64a2657fff0da3564de6bc3e0c",
+      "artifacts": 99,
+      "relationships": 212,
+      "selection_strategy": "highest direct incoming dependency edge count",
+      "candidate_targets_considered": 28,
+      "selected_target": "blastradius/model.py::ColumnChange",
+      "gate_decision": "review",
+      "supported_impacts": 20,
+      "exact_paths_valid": true,
+      "sample_impacts": [
+        {
+          "logical_key": "blastradius/mcp_server.py::_changes",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "blastradius/cli.py::_parse_changes",
+          "kind": "function",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_blast_radius.py::test_asset_found_only_by_column_pass_is_still_reported",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_blast_radius.py::test_both_passes_are_actually_issued",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_blast_radius.py::test_bridge_is_not_queried_for_plain_datasets",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_blast_radius.py::test_column_evidence_upgrades_to_breaking_and_table_only_stays_info",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_blast_radius.py::test_dashboard_inherits_severity_of_the_column_it_renders_not_the_worst_change",
+          "kind": "test",
+          "hop_distance": 1
+        },
+        {
+          "logical_key": "tests/test_blast_radius.py::test_dashboard_rendering_an_untouched_column_stays_info",
+          "kind": "test",
+          "hop_distance": 1
+        }
+      ],
+      "warnings": [
+        "Unresolved pyproject entrypoint blastradius=blastradius.cli:app"
+      ]
+    }
+  ]
+}

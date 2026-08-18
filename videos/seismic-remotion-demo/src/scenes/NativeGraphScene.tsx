@@ -12,10 +12,10 @@ export const NativeGraphScene: React.FC<{duration: number}> = ({duration}) => {
   const frame = useCurrentFrame();
   return <Frame duration={duration} index={6} label="HYDRADB NATIVE">
     <div style={{position: "absolute", left: 102, top: 180, width: 710}}>
-      <Kicker>Why HydraDB is essential</Kicker>
+      <Kicker>System of record + path engine</Kicker>
       <Headline size={80} style={{marginTop: 30}}>Paths are the<br/><span style={{color: COLORS.orange}}>product primitive.</span></Headline>
       <div style={{marginTop: 42, display: "grid", gap: 13}}>{procedures.map((item,index)=><Panel key={item[0]} style={{padding: "20px 22px", display: "grid", gridTemplateColumns: "220px 1fr", alignItems: "center", opacity: ease(frame,48+index*22)}}><strong style={{fontFamily: "Seismic Mono", color: COLORS.orange, fontSize: 18}}>{item[0]}</strong><span style={{color: COLORS.muted, fontSize: 18}}>{item[1]}</span></Panel>)}</div>
-      <div style={{marginTop: 32, color: COLORS.muted, fontSize: 23, lineHeight: 1.4, opacity: ease(frame,130)}}>Stable artifact identities carry real incident evidence into the next immutable snapshot.</div>
+      <div style={{marginTop: 32, color: COLORS.muted, fontSize: 22, lineHeight: 1.4, opacity: ease(frame,130)}}>Not a log sink. Remove HydraDB and the gate loses direction, reachability and proof.</div>
     </div>
     <Panel style={{position: "absolute", right: 92, top: 175, width: 900, height: 700, opacity: ease(frame,24), translate: `${interpolate(ease(frame,24),[0,1],[44,0])}px 0`}}>
       <div style={{position: "absolute", top: 28, left: 34, fontFamily: "Seismic Mono", color: COLORS.verified, fontSize: 15}}>INCIDENT EVIDENCE ACROSS SNAPSHOTS</div>
