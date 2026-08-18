@@ -1,7 +1,7 @@
 # Seismic, proof before the patch
 
 1. **The hidden aftershock**: a one-line change packet reveals its caller, entrypoint and transport test on a vertical dependency trace.
-2. **Code becomes structure**: a light editorial scan turns the Seismic checkout into 269 artifacts and 515 directed relationships in an immutable HydraDB snapshot.
+2. **Code becomes structure**: a light editorial scan turns the final Seismic checkout into 276 artifacts and 535 directed relationships in an immutable HydraDB snapshot.
 3. **Enter the decision room**: a signal-orange workspace resolves the real `_bounded_int` diff, animates its exact HydraDB paths and issues a review gate.
 4. **Make zero visible**: a paper receipt records the unsupported target, zero paths and explicit abstention.
 5. **Orbit the durable core**: seven MCP tools surround HydraDB while fresh stdio and HTTP clients recover the same graph truth.

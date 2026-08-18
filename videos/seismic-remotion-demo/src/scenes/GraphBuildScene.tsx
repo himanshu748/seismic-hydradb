@@ -42,8 +42,8 @@ export const GraphBuildScene: React.FC<{duration: number}> = ({duration}) => {
             </svg>
             {artifacts.map((artifact, index) => <div key={artifact.label} style={{position: "absolute", left: artifact.x, top: artifact.y + 75, width: 210, minHeight: 86, padding: "16px", border: `2px solid ${artifact.tone}`, background: artifact.tone === COLORS.orange ? COLORS.orange : COLORS.paper, color: COLORS.graphite, borderRadius: 12, fontFamily: "Seismic Mono", fontSize: 17, fontWeight: 700, opacity: ease(frame, 130 + index * 24), transform: `scale(${interpolate(ease(frame, 130 + index * 24), [0, 1], [.7, 1])})`}}>{artifact.label}<div style={{fontSize: 11, marginTop: 9, fontWeight: 400, color: artifact.tone === COLORS.orange ? "#5b200e" : "#766c64"}}>{index === 3 ? "TEST" : index === 2 ? "ENTRYPOINT" : "FUNCTION"}</div></div>)}
             <div style={{position: "absolute", left: 28, right: 28, bottom: 24, display: "flex", justifyContent: "space-between", fontFamily: "Seismic Mono"}}>
-              <span><CountUp value={269} at={230} style={{fontSize: 31, fontWeight: 700}} /> <small>ARTIFACTS</small></span>
-              <span><CountUp value={515} at={245} style={{fontSize: 31, fontWeight: 700}} /> <small>RELATIONSHIPS</small></span>
+              <span><CountUp value={276} at={230} style={{fontSize: 31, fontWeight: 700}} /> <small>ARTIFACTS</small></span>
+              <span><CountUp value={535} at={245} style={{fontSize: 31, fontWeight: 700}} /> <small>RELATIONSHIPS</small></span>
               <span style={{color: COLORS.verified, opacity: ease(frame, 260)}}>IMMUTABLE ✓</span>
             </div>
           </Sheet>
