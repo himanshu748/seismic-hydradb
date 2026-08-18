@@ -36,13 +36,13 @@ export function Landing() {
 
       <section className="hero">
         <div className="hero-copy reveal">
-          <h1>Know what a code change can break before the agent edits it.</h1>
+          <h1>Give every code change a graph-backed go or no-go.</h1>
           <p>
-            Seismic turns a Python repository into a versioned HydraDB graph, then gives
-            coding agents the exact callers, tests and entrypoints a planned change can affect.
+            Seismic turns a git diff into a safe, review or block decision with the exact
+            HydraDB paths, required tests and entrypoints behind every claim.
           </p>
           <div className="hero-actions">
-            <a className="primary-action" href="/app">Analyze a change <ArrowRight size={18} /></a>
+            <a className="primary-action" href="/app">Gate a change <ArrowRight size={18} /></a>
             <a className="text-action" href="#how">See the graph invariant</a>
           </div>
         </div>
@@ -52,19 +52,19 @@ export function Landing() {
       <section className="principle-band reveal" aria-label="Core product principles">
         <div><Route /><strong>Exact paths</strong><span>Every impact includes its dependency route.</span></div>
         <div><GitBranch /><strong>Versioned snapshots</strong><span>Agents never query a half-built graph.</span></div>
-        <div><ShieldCheck /><strong>Explicit abstention</strong><span>No path means no unsupported claim.</span></div>
+        <div><ShieldCheck /><strong>Agent change gate</strong><span>Safe, review or block, with the reasons exposed.</span></div>
       </section>
 
       <section id="how" className="how-section">
         <div className="section-heading reveal">
-          <span>Four operations, one safety check</span>
-          <h2>From repository to blast radius.</h2>
+          <span>A diff in, a defensible decision out</span>
+          <h2>From repository to change gate.</h2>
         </div>
         <ol className="workflow-list">
           <li className="reveal"><b>01</b><div><strong>Index</strong><p>Parse files, symbols, calls, imports, tests, packages and entrypoints.</p></div></li>
           <li className="reveal"><b>02</b><div><strong>Resolve</strong><p>Choose the exact file or symbol from the active immutable snapshot.</p></div></li>
           <li className="reveal"><b>03</b><div><strong>Traverse</strong><p>Walk incoming dependency edges with HydraDB native bounded paths.</p></div></li>
-          <li className="reveal"><b>04</b><div><strong>Explain</strong><p>Return ranked artifacts with the precise evidence path and incident history.</p></div></li>
+          <li className="reveal"><b>04</b><div><strong>Decide</strong><p>Return safe, review or block with exact tests, entrypoints, owners and path evidence.</p></div></li>
         </ol>
       </section>
 

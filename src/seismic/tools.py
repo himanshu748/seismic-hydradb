@@ -13,11 +13,13 @@ from neo4j.graph import Node, Path
 from seismic.config import SeismicConfig
 from seismic.db import HydraDB
 from seismic.diffing import ChangedFile, parse_unified_diff
+from seismic.gate import build_change_gate
 from seismic.identity import relationship_id, stable_id
 from seismic.ingest import SnapshotWriter
 from seismic.models import (
     ChangeImpactReport,
     ContextPack,
+    DiffImpactReport,
     EvidenceHop,
     EvidenceNode,
     ImpactExplanation,
@@ -94,12 +96,18 @@ class SeismicService:
                     alternatives = ", ".join(str(match["logical_key"]) for match in matches)
                     warnings.append(f"Ambiguous target {target}; candidates: {alternatives}")
         if not resolved:
+            empty_results: list[ImpactResult] = []
             return {
                 "repo_id": repo_key,
                 "snapshot_id": snapshot_key,
                 "targets": clean_targets,
                 "engine": "HydraDB native path procedures",
-                "results": [],
+                "gate": build_change_gate(
+                    targets=clean_targets,
+                    results=empty_results,
+                    unresolved_targets=unresolved,
+                ),
+                "results": empty_results,
                 "unresolved_targets": unresolved,
                 "warnings": warnings,
             }
@@ -173,12 +181,18 @@ class SeismicService:
         results.sort(
             key=lambda item: (-item["risk_score"], item["hop_distance"], item["artifact_key"])
         )
+        ranked_results = results[:limit]
         return {
             "repo_id": repo_key,
             "snapshot_id": snapshot_key,
             "targets": clean_targets,
             "engine": "HydraDB algo.SSpaths" if len(resolved) == 1 else "HydraDB algo.MSpaths",
-            "results": results[:limit],
+            "gate": build_change_gate(
+                targets=clean_targets,
+                results=results,
+                unresolved_targets=unresolved,
+            ),
+            "results": ranked_results,
             "unresolved_targets": unresolved,
             "warnings": warnings,
         }
@@ -189,26 +203,34 @@ class SeismicService:
         diff: str,
         max_hops: int = 4,
         limit: int = 30,
-    ) -> dict[str, object]:
-        """Resolve touched lines from a unified diff before ranking graph impact."""
+    ) -> DiffImpactReport:
+        """Resolve a unified diff and return an actionable, evidence-backed change gate."""
 
         repo_key, snapshot_key = self._active_snapshot(repo_id)
         changes = parse_unified_diff(diff)
         targets, warnings = self._diff_targets(snapshot_key, changes)
         if not targets:
+            results: list[ImpactResult] = []
             return {
                 "repo_id": repo_key,
                 "snapshot_id": snapshot_key,
                 "targets": [],
                 "diff_files": [change.path for change in changes],
                 "engine": "HydraDB native path procedures",
-                "results": [],
+                "gate": build_change_gate(
+                    targets=[],
+                    results=results,
+                    unresolved_targets=[],
+                ),
+                "results": results,
                 "unresolved_targets": [],
                 "warnings": warnings or ["The diff did not touch an indexed artifact."],
             }
         raw_report = self.analyze_change(repo_key, targets, max_hops, limit)
-        report: dict[str, object] = dict(raw_report)
-        report["diff_files"] = [change.path for change in changes]
+        report: DiffImpactReport = {
+            **raw_report,
+            "diff_files": [change.path for change in changes],
+        }
         report["warnings"] = [*raw_report["warnings"], *warnings]
         return report
 

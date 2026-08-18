@@ -1,12 +1,12 @@
 # Seismic
 
-Graph-native blast radius analysis for code changes, built on HydraDB.
+Graph-native change gates for coding agents, built on HydraDB.
 
-Seismic tells a coding agent what a proposed change can affect before it edits code. It parses a Python repository into an immutable dependency graph, follows reverse dependency paths with HydraDB's native path procedures and returns exact evidence for every impact claim.
+Seismic tells a coding agent whether to proceed, review or stop before it edits code. It maps a real git diff to an immutable dependency graph, follows reverse dependency paths with HydraDB's native path procedures and returns exact tests, entrypoints and path evidence for every decision.
 
 Seismic is built for Hack Hydra Track 02B: Repos, Dependencies + Code as Graphs.
 
-![Seismic landing page](docs/assets/landing.jpg)
+![Seismic landing page](docs/assets/landing-change-gate.jpg)
 
 ## Why this is a graph problem
 
@@ -18,8 +18,9 @@ flowchart LR
     B --> C["Immutable snapshot graph"]
     C --> D["HydraDB over Bolt"]
     D --> E["Native SSpaths, MSpaths and SPpaths"]
-    E --> F["Stateless MCP tools"]
-    E --> G["Live dashboard"]
+    E --> F["Safe, review or block"]
+    F --> G["Stateless MCP tools"]
+    F --> H["Live dashboard"]
 ```
 
 The direction invariant is simple: a consumer points to its dependency. Blast radius walks those relationships in the incoming direction.
@@ -31,6 +32,8 @@ The direction invariant is simple: a consumer points to its dependency. Blast ra
 - `PART_OF`, `IMPORTS`, `CALLS`, `TESTS`, `STARTS_AT` and `DEPENDS_ON` relationships
 - Native HydraDB `algo.SSpaths`, `algo.MSpaths` and `algo.SPpaths` traversal
 - Automatic symbol discovery from bounded unified diffs
+- A deterministic agent change gate with safe, review and block decisions
+- Required tests, affected entrypoints and CODEOWNERS routing from graph evidence
 - Transparent risk scores based on path length, fan-in and incident history
 - Incidents attached to stable identities so evidence survives new snapshots
 - Stateless stdio and Streamable HTTP MCP transports
@@ -74,9 +77,9 @@ export SEISMIC_ALLOWED_ROOTS=/absolute/path/to/your/repos
 .venv/bin/seismic-web
 ```
 
-Open [http://127.0.0.1:8791](http://127.0.0.1:8791). Index an allowed Git checkout, enter a file or symbol such as `src/app.py::run` and select Analyze change.
+Open [http://127.0.0.1:8791](http://127.0.0.1:8791). Index an allowed Git checkout, then enter a symbol or select **Paste diff** to run the agent change gate on `git diff --unified=0` output.
 
-![Seismic live analyzer showing a HydraDB blast radius](docs/assets/dashboard.jpg)
+![Seismic live analyzer showing a HydraDB change gate](docs/assets/dashboard-change-gate.jpg)
 
 ### Attach a coding agent over stdio
 
@@ -109,8 +112,8 @@ The endpoint is `http://127.0.0.1:8790/mcp`. HTTP is configured with `stateless_
 | Tool | Purpose |
 |---|---|
 | `index_repository` | Parse, validate and activate an immutable snapshot for one allowed Git checkout |
-| `analyze_change` | Rank reverse dependency paths from one or more changed targets |
-| `analyze_diff` | Map changed patch lines to indexed symbols, then rank their combined blast radius |
+| `analyze_change` | Rank reverse dependency paths and return an actionable change gate |
+| `analyze_diff` | Map patch lines to symbols, then return a combined safe, review or block decision |
 | `retrieve_context` | Resolve lexical or agent-supplied seeds and expand grounded graph context |
 | `explain_impact` | Return one exact path between a change and an affected artifact, or abstain |
 | `record_incident` | Store real breakage evidence against stable artifact identities |
@@ -119,6 +122,25 @@ The endpoint is `http://127.0.0.1:8790/mcp`. HTTP is configured with `stateless_
 Every tool has a short docstring because its description is part of the agent-facing MCP contract.
 
 An agent can pass the output of `git diff --unified=0` directly to `analyze_diff`. Seismic never applies the patch. It validates every patch path, resolves touched line ranges against the active snapshot and sends the discovered symbols through the same HydraDB path engine.
+
+## Agent change gate
+
+Every `analyze_change` and `analyze_diff` response now includes a deterministic `gate` object:
+
+- `safe`: the target resolved and no downstream path is supported within the requested bound
+- `review`: supported impacts exist, or part of the supplied change could not be resolved
+- `block`: a supported impact reaches the 75 risk threshold, or the exact trigger-impact pair has prior incident evidence
+
+The gate also returns `required_tests`, ready-to-run `verification_commands`, `affected_entrypoints`, `affected_owners`, the maximum risk score and plain-language reasons. The policy lives in [`src/seismic/gate.py`](src/seismic/gate.py) so it is inspectable and replaceable. A `safe` result is bounded static evidence, not a claim of runtime certainty.
+
+```json
+{
+  "decision": "review",
+  "verification_commands": ["pytest tests/test_checkout.py::test_total"],
+  "affected_entrypoints": ["pyproject.toml::script::sample"],
+  "max_risk_score": 68.0
+}
+```
 
 ## HydraDB data model
 
@@ -176,7 +198,7 @@ cd ui && npm run build
 .venv/bin/pytest -q -m integration
 ```
 
-The current suite collects 16 tests: 13 fast tests and 3 live integration tests. The live group covers direct Bolt behavior, unified-diff resolution, a fresh stdio MCP process and fresh clients against sessionless Streamable HTTP.
+The current suite collects 19 tests: 16 fast tests and 3 live integration tests. The live group covers direct Bolt behavior, unified-diff gating, a fresh stdio MCP process and fresh clients against sessionless Streamable HTTP.
 
 ### Self-authored Track 02 evaluation
 

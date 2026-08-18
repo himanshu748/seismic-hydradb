@@ -86,6 +86,10 @@ def test_fresh_http_clients_share_only_durable_hydradb_graph(tmp_path: Path) -> 
             assert not diffed.is_error
             assert diffed.structured_content is not None
             assert diffed.structured_content["targets"] == ["src/sample_app/pricing.py::calculate"]
+            assert diffed.structured_content["gate"]["decision"] == "review"
+            assert diffed.structured_content["gate"]["affected_entrypoints"] == [
+                "pyproject.toml::script::sample"
+            ]
 
     try:
         with _running_server(tmp_path) as url:

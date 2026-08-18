@@ -142,7 +142,9 @@ def create_app(service_override: SeismicService | None = None) -> FastAPI:
 
     @web.post("/api/analyze-diff")
     async def analyze_diff(request: Request, body: DiffBody) -> dict[str, object]:
-        return _service(request).analyze_diff(body.repo_id, body.diff, body.max_hops, body.limit)
+        return dict(
+            _service(request).analyze_diff(body.repo_id, body.diff, body.max_hops, body.limit)
+        )
 
     @web.post("/api/context")
     async def retrieve_context(request: Request, body: ContextBody) -> dict[str, object]:

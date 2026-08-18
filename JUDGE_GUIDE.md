@@ -2,16 +2,16 @@
 
 ## The 20-second pitch
 
-Seismic gives coding agents a proof-carrying blast radius before they edit code. It stores each Git snapshot as a HydraDB graph, uses native path procedures to find reverse dependencies and returns the exact calls, imports, tests or entrypoints behind every claim.
+Seismic gives coding agents a proof-carrying change gate before they edit code. It turns a real git diff into a safe, review or block decision, backed by exact HydraDB paths, required tests and affected entrypoints.
 
 ## What to inspect first
 
 1. Open the dashboard at `http://127.0.0.1:8791/app`.
-2. Analyze `src/sample_app/pricing.py::calculate` in the seeded `seismic` repository.
-3. Select an affected result to see the exact graph path.
-4. Compare the risk score components and incident evidence.
-5. Show `analyze_diff` resolving changed patch lines to exact functions.
-6. Open `src/seismic/tools.py` to see the three HydraDB native path procedures.
+2. Select **Paste diff** and run the prefilled pricing patch in the seeded `seismic` repository.
+3. Show the `review` decision, required test and affected CLI entrypoint.
+4. Select an affected result to see the exact graph path.
+5. Compare the risk score components and incident evidence.
+6. Open `src/seismic/gate.py` and `src/seismic/tools.py` to inspect the policy and native path calls.
 
 ## Why HydraDB is essential
 
@@ -32,11 +32,11 @@ Show the landing page. Explain that an agent can find similar code yet still mis
 
 ### 0:25 to 1:15, exact blast radius
 
-Open the analyzer. Use `src/sample_app/pricing.py::calculate` as the change target. Show the five ranked impacts and select the service handler. Trace `calculate` to `total` to `handler` on the graph.
+Open the analyzer, select **Paste diff** and submit the prefilled unified diff. Show how Seismic resolves the changed line to `pricing.calculate`, then returns `review`, `test_total` and the `sample` entrypoint. Select the service handler and trace `calculate` to `total` to `handler` on the graph.
 
-### 1:15 to 1:45, trust through evidence
+### 1:15 to 1:45, decision through evidence
 
-Point to the relationship labels, hop count and score breakdown. Explain that every visible claim is backed by a HydraDB path. An unresolved symbol or unsupported pair returns no result.
+Point to the gate reasons, relationship labels, hop count and score breakdown. Explain that every action is derived from HydraDB path evidence. An unresolved symbol returns review, never safe.
 
 ### 1:45 to 2:15, product depth
 
@@ -61,7 +61,7 @@ Show the raw evaluation and stress JSON. State the scope precisely: a self-autho
 cd ui && npm run build
 ```
 
-Current test split: 13 fast tests and 3 live integration tests.
+Current test split: 16 fast tests and 3 live integration tests.
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m benchmarks.track02_eval

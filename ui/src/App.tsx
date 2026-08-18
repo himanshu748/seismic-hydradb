@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleDot,
   Database,
+  FileDiff,
   FileCode2,
   GitCommitHorizontal,
   History,
@@ -13,6 +14,7 @@ import {
   RefreshCw,
   SearchCode,
   Server,
+  ShieldCheck,
   TriangleAlert,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -29,6 +31,12 @@ import type {
 
 const DEFAULT_REPO_ID = "seismic";
 const DEFAULT_TARGET = "src/sample_app/pricing.py::calculate";
+const DEFAULT_DIFF = `diff --git a/src/sample_app/pricing.py b/src/sample_app/pricing.py
+--- a/src/sample_app/pricing.py
++++ b/src/sample_app/pricing.py
+@@ -7 +7 @@
+-    return subtotal * 1.1
++    return subtotal * 1.2`;
 
 export default function App() {
   const [health, setHealth] = useState<Health | null>(null);
@@ -44,6 +52,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [incidentOpen, setIncidentOpen] = useState(false);
+  const [diffOpen, setDiffOpen] = useState(false);
+  const [diffText, setDiffText] = useState(DEFAULT_DIFF);
   const [incidentDescription, setIncidentDescription] = useState("");
   const [incidentSeverity, setIncidentSeverity] = useState("high");
 
@@ -118,13 +128,38 @@ export default function App() {
     }
   }
 
+  async function handleAnalyzeDiff(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setNotice(null);
+    setBusy("analyze");
+    try {
+      const result = await api.analyzeDiff(repoId, diffText, maxHops);
+      setReport(result);
+      setSelectedKey(result.results[0]?.artifact_key ?? null);
+      setDiffOpen(false);
+      if (result.results.length === 0) {
+        setNotice(result.gate.summary);
+      } else {
+        const changedFiles = result.diff_files?.length ?? 0;
+        setNotice(
+          `Change gate: ${result.gate.decision.toUpperCase()}. ${result.results.length} supported impacts from ${changedFiles} changed file${changedFiles === 1 ? "" : "s"}.`,
+        );
+      }
+    } catch (caught) {
+      setError(messageOf(caught));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function handleIncident(event: FormEvent) {
     event.preventDefault();
     if (!selected) return;
     setBusy("incident");
     setError(null);
     try {
-      await api.recordIncident(repoId, target, selected.logical_key, incidentDescription, incidentSeverity);
+      await api.recordIncident(repoId, selected.target, selected.logical_key, incidentDescription, incidentSeverity);
       setIncidentOpen(false);
       setIncidentDescription("");
       setNotice("Incident stored in HydraDB. Re-analyze to include it in risk ordering.");
@@ -203,7 +238,7 @@ export default function App() {
       <main className="analysis-workspace">
         <div className="canvas-header">
           <div>
-            <span>Dependency fault map</span>
+            <span>{report?.diff_files ? `Diff · ${report.diff_files.length} changed file${report.diff_files.length === 1 ? "" : "s"}` : "Dependency fault map"}</span>
             <strong>{report ? report.targets.join(", ") : "Awaiting a change target"}</strong>
           </div>
           <div className="canvas-engine"><CircleDot size={14} />{report?.engine ?? "HydraDB native paths"}</div>
@@ -242,7 +277,13 @@ export default function App() {
         <form className="analysis-bar" onSubmit={handleAnalyze}>
           <div className="target-field">
             <label htmlFor="target">Planned change</label>
-            <div><FileCode2 size={18} /><input id="target" value={target} onChange={(event) => setTarget(event.target.value)} required /></div>
+            <div>
+              <FileCode2 size={18} />
+              <input id="target" value={target} onChange={(event) => setTarget(event.target.value)} required />
+              <button className="diff-button" type="button" onClick={() => setDiffOpen(true)} aria-label="Analyze a git diff">
+                <FileDiff size={15} /> Paste diff
+              </button>
+            </div>
           </div>
           <label className="hop-field" htmlFor="max-hops">
             Max hops
@@ -266,6 +307,7 @@ export default function App() {
           <div><span>Affected artifacts</span><strong>{report?.results.length ?? 0}</strong></div>
           <small>{report ? `within ${maxHops} hops` : "run an analysis"}</small>
         </div>
+        {report && <GatePanel report={report} />}
         <div className="impact-list">
           {report?.results.length ? report.results.map((result, index) => (
             <ImpactRow
@@ -309,11 +351,11 @@ export default function App() {
 
       {incidentOpen && selected && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setIncidentOpen(false)}>
-          <form className="incident-modal" onSubmit={handleIncident} onMouseDown={(event) => event.stopPropagation()}>
+          <form className="incident-modal" role="dialog" aria-modal="true" aria-labelledby="incident-title" onSubmit={handleIncident} onMouseDown={(event) => event.stopPropagation()}>
             <div className="modal-icon"><History size={20} /></div>
-            <h2>Record breakage evidence</h2>
+            <h2 id="incident-title">Record breakage evidence</h2>
             <p>Link a real incident to this change path so future ranking can use it.</p>
-            <div className="incident-route"><code>{target}</code><ArrowRight size={14} /><code>{selected.logical_key}</code></div>
+            <div className="incident-route"><code>{selected.target}</code><ArrowRight size={14} /><code>{selected.logical_key}</code></div>
             <label htmlFor="incident-description">What broke</label>
             <textarea id="incident-description" value={incidentDescription} onChange={(event) => setIncidentDescription(event.target.value)} required autoFocus />
             <label htmlFor="incident-severity">Severity</label>
@@ -330,10 +372,58 @@ export default function App() {
           </form>
         </div>
       )}
+
+      {diffOpen && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setDiffOpen(false)}>
+          <form className="incident-modal diff-modal" role="dialog" aria-modal="true" aria-labelledby="diff-title" onSubmit={handleAnalyzeDiff} onMouseDown={(event) => event.stopPropagation()}>
+            <div className="modal-icon"><FileDiff size={20} /></div>
+            <h2 id="diff-title">Gate a real git diff</h2>
+            <p>Paste <code>git diff --unified=0</code>. Seismic validates paths, resolves touched symbols and asks HydraDB for their combined blast radius. It never applies the patch.</p>
+            <label htmlFor="change-diff">Unified diff</label>
+            <textarea id="change-diff" value={diffText} onChange={(event) => setDiffText(event.target.value)} required autoFocus spellCheck={false} />
+            <div className="diff-safety"><ShieldCheck size={15} /> Read-only analysis, bounded to 250 KB and 100 files</div>
+            <div className="modal-actions">
+              <button type="button" onClick={() => setDiffOpen(false)}>Cancel</button>
+              <button className="primary-button" type="submit" disabled={busy === "analyze" || !diffText.trim() || !repoId.trim()}>
+                {busy === "analyze" ? <LoaderCircle className="spin" size={16} /> : <TriangleAlert size={16} />}
+                Run change gate
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       <span className="sr-only" aria-live="polite">
         {report ? `${report.results.length} affected artifacts found.` : ""}
       </span>
     </div>
+  );
+}
+
+function GatePanel({ report }: { report: ChangeReport }) {
+  const gate = report.gate;
+  return (
+    <section className={`gate-panel ${gate.decision}`} aria-label={`Change gate decision: ${gate.decision}`}>
+      <div className="gate-verdict">
+        <span><ShieldCheck size={14} /> Agent change gate</span>
+        <strong>{gate.decision}</strong>
+      </div>
+      <h2>{gate.headline}</h2>
+      <p>{gate.summary}</p>
+      <div className="gate-metrics">
+        <span><b>{gate.max_risk_score.toFixed(2)}</b> max risk</span>
+        <span><b>{gate.impacted_artifacts}</b> impacts</span>
+      </div>
+      {(gate.verification_commands.length > 0 || gate.affected_entrypoints.length > 0) && (
+        <div className="gate-actions">
+          {gate.verification_commands.length > 0 && (
+            <div><span>Run before merge</span>{gate.verification_commands.map((item) => <code key={item}>{item}</code>)}</div>
+          )}
+          {gate.affected_entrypoints.length > 0 && (
+            <div><span>Affected entrypoints</span>{gate.affected_entrypoints.map((item) => <code key={item}>{item}</code>)}</div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

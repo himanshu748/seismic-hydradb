@@ -78,9 +78,32 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
 """,
         )
         assert diff_report["targets"] == ["src/sample_app/pricing.py::calculate"]
+        assert diff_report["gate"]["decision"] == "review"
+        assert diff_report["gate"]["required_tests"] == ["tests/test_checkout.py::test_total"]
+        assert diff_report["gate"]["verification_commands"] == [
+            "pytest tests/test_checkout.py::test_total"
+        ]
+        assert diff_report["gate"]["affected_entrypoints"] == ["pyproject.toml::script::sample"]
         assert "tests/test_checkout.py::test_total" in {
             result["logical_key"] for result in diff_report["results"]
         }
+
+        limited_diff_report = service.analyze_diff(
+            repo_id,
+            """--- a/src/sample_app/pricing.py
++++ b/src/sample_app/pricing.py
+@@ -7 +7 @@
+""",
+            limit=1,
+        )
+        assert len(limited_diff_report["results"]) == 1
+        assert limited_diff_report["gate"]["impacted_artifacts"] == 5
+        assert limited_diff_report["gate"]["required_tests"] == [
+            "tests/test_checkout.py::test_total"
+        ]
+        assert limited_diff_report["gate"]["affected_entrypoints"] == [
+            "pyproject.toml::script::sample"
+        ]
 
         multi_target = service.analyze_change(
             repo_id,
@@ -102,6 +125,7 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         )
         assert missing["results"] == []
         assert missing["unresolved_targets"] == ["src/sample_app/pricing.py::not_real"]
+        assert missing["gate"]["decision"] == "review"
 
         explanation = service.explain_impact(
             repo_id,

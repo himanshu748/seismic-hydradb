@@ -50,6 +50,7 @@ class FakeService:
             "snapshot_id": f"{repo_id}@abc123",
             "targets": targets,
             "engine": "HydraDB algo.SSpaths",
+            "gate": _gate(),
             "results": [],
             "unresolved_targets": [],
             "warnings": [],
@@ -63,6 +64,7 @@ class FakeService:
             "targets": ["src/a.py::run"],
             "diff_files": ["src/a.py"],
             "engine": "HydraDB algo.SSpaths",
+            "gate": _gate(),
             "results": [],
             "unresolved_targets": [],
             "warnings": [],
@@ -80,6 +82,22 @@ class FakeService:
             "relationship_count": 9,
             "created_at": "2026-08-17T00:00:00+00:00",
         }
+
+
+def _gate() -> dict[str, Any]:
+    return {
+        "policy": "seismic-change-gate-v1",
+        "decision": "review",
+        "headline": "Review graph evidence before editing",
+        "summary": "Inspect exact paths before changing code.",
+        "max_risk_score": 0.0,
+        "impacted_artifacts": 0,
+        "required_tests": [],
+        "verification_commands": [],
+        "affected_entrypoints": [],
+        "affected_owners": [],
+        "reasons": [],
+    }
 
 
 def test_health_index_analyze_and_status_contracts() -> None:
@@ -102,6 +120,7 @@ def test_health_index_analyze_and_status_contracts() -> None:
     assert indexed.json()["activated"] is True
     assert analyzed.json()["engine"] == "HydraDB algo.SSpaths"
     assert diffed.json()["diff_files"] == ["src/a.py"]
+    assert diffed.json()["gate"]["decision"] == "review"
     assert status.json()["artifact_count"] == 8
     assert service.calls == [
         ("index", ("/safe/repo", "demo")),

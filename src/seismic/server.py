@@ -14,7 +14,13 @@ from mcp.server.mcpserver import Context
 
 from seismic.config import SeismicConfig, SeismicConfigError
 from seismic.db import HydraDB, HydraDBError
-from seismic.models import ChangeImpactReport, ContextPack, ImpactExplanation, IngestSummary
+from seismic.models import (
+    ChangeImpactReport,
+    ContextPack,
+    DiffImpactReport,
+    ImpactExplanation,
+    IngestSummary,
+)
 from seismic.tools import SeismicService
 
 LOGGER = logging.getLogger("seismic")
@@ -94,8 +100,8 @@ def analyze_diff(
     ctx: Context[RuntimeState],
     max_hops: int = 4,
     limit: int = 30,
-) -> dict[str, object]:
-    """Map a unified diff to touched symbols and return their graph blast radius."""
+) -> DiffImpactReport:
+    """Turn a unified diff into an evidence-backed safe, review or block decision."""
 
     return ctx.request_context.lifespan_context.service.analyze_diff(repo_id, diff, max_hops, limit)
 

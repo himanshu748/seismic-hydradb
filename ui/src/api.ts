@@ -26,6 +26,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ repo_id: repoId, targets: [target], max_hops: maxHops }),
     }),
+  analyzeDiff: (repoId: string, diff: string, maxHops: number) =>
+    request<ChangeReport>("/api/analyze-diff", {
+      method: "POST",
+      body: JSON.stringify({ repo_id: repoId, diff, max_hops: maxHops }),
+    }),
   recordIncident: (
     repoId: string,
     trigger: string,

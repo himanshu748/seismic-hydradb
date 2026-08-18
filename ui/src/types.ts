@@ -70,11 +70,27 @@ export type ImpactResult = {
   hops: EvidenceHop[];
 };
 
+export type ChangeGate = {
+  policy: string;
+  decision: "safe" | "review" | "block";
+  headline: string;
+  summary: string;
+  max_risk_score: number;
+  impacted_artifacts: number;
+  required_tests: string[];
+  verification_commands: string[];
+  affected_entrypoints: string[];
+  affected_owners: string[];
+  reasons: string[];
+};
+
 export type ChangeReport = {
   repo_id: string;
   snapshot_id: string;
   targets: string[];
+  diff_files?: string[];
   engine: string;
+  gate: ChangeGate;
   results: ImpactResult[];
   unresolved_targets: string[];
   warnings: string[];

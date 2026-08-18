@@ -7,6 +7,7 @@ from typing import Literal, TypedDict
 
 ArtifactKind = Literal["file", "function", "class", "test", "entrypoint", "package_version"]
 RelationshipKind = Literal["PART_OF", "IMPORTS", "CALLS", "TESTS", "STARTS_AT", "DEPENDS_ON"]
+GateDecision = Literal["safe", "review", "block"]
 
 
 @dataclass(slots=True)
@@ -128,6 +129,22 @@ class ImpactResult(TypedDict):
     hops: list[EvidenceHop]
 
 
+class ChangeGate(TypedDict):
+    """Deterministic action an agent can take from the supported graph evidence."""
+
+    policy: str
+    decision: GateDecision
+    headline: str
+    summary: str
+    max_risk_score: float
+    impacted_artifacts: int
+    required_tests: list[str]
+    verification_commands: list[str]
+    affected_entrypoints: list[str]
+    affected_owners: list[str]
+    reasons: list[str]
+
+
 class ChangeImpactReport(TypedDict):
     """Complete result of analyzing one planned repository change."""
 
@@ -135,9 +152,16 @@ class ChangeImpactReport(TypedDict):
     snapshot_id: str
     targets: list[str]
     engine: str
+    gate: ChangeGate
     results: list[ImpactResult]
     unresolved_targets: list[str]
     warnings: list[str]
+
+
+class DiffImpactReport(ChangeImpactReport):
+    """Change impact plus the files discovered from a bounded unified diff."""
+
+    diff_files: list[str]
 
 
 class ContextPack(TypedDict):

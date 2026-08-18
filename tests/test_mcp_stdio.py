@@ -114,6 +114,13 @@ def test_fresh_mcp_process_analyzes_graph_indexed_by_prior_process(tmp_path: Pat
             assert not diffed.is_error
             assert diffed.structured_content is not None
             assert diffed.structured_content["targets"] == ["src/sample_app/pricing.py::calculate"]
+            assert diffed.structured_content["gate"]["decision"] == "review"
+            assert diffed.structured_content["gate"]["required_tests"] == [
+                "tests/test_checkout.py::test_total"
+            ]
+            assert diffed.structured_content["gate"]["verification_commands"] == [
+                "pytest tests/test_checkout.py::test_total"
+            ]
 
     try:
         snapshot_id = anyio.run(index_in_first_process)
