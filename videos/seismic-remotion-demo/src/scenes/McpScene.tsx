@@ -1,27 +1,51 @@
-import {interpolate, useCurrentFrame} from "remotion";
+import {useCurrentFrame} from "remotion";
 import {COLORS} from "../constants";
-import {Frame, Headline, Kicker, Panel, Terminal, ease} from "../components";
+import {Frame, Headline, Kicker, Reveal, Sheet, Status, ease} from "../components";
 
-const tools = ["index_repository", "analyze_change", "analyze_diff", "retrieve_context", "explain_impact", "record_incident", "repository_status"];
+const tools = [
+  ["index_repository", -650, -240],
+  ["analyze_change", -650, -70],
+  ["analyze_diff", -650, 100],
+  ["retrieve_context", 420, -240],
+  ["explain_impact", 420, -70],
+  ["record_incident", 420, 100],
+  ["repository_status", -115, 295],
+] as const;
 
 export const McpScene: React.FC<{duration: number}> = ({duration}) => {
   const frame = useCurrentFrame();
-  return <Frame duration={duration} index={5} label="STATELESS MCP">
-    <div style={{position: "absolute", left: 100, top: 175, width: 690}}>
-      <Kicker>Built for coding agents</Kicker>
-      <Headline size={82} style={{marginTop: 30}}>Seven tools.<br/><span style={{color: COLORS.orange}}>One durable graph.</span></Headline>
-      <div style={{display: "flex", flexWrap: "wrap", gap: 10, marginTop: 40}}>{tools.map((tool,index)=><span key={tool} style={{padding: "12px 14px", border: `1px solid ${index===2 ? COLORS.orange : COLORS.border}`, borderRadius: 7, color: index===2 ? COLORS.orange : COLORS.muted, background: index===2 ? "rgba(255,90,36,.07)" : COLORS.raised, fontFamily: "Seismic Mono", fontSize: 14, opacity: ease(frame,60+index*11)}}>{tool}</span>)}</div>
-      <Panel style={{marginTop: 40, padding: "22px 24px", opacity: ease(frame,580), translate: `0 ${interpolate(ease(frame,580),[0,1],[20,0])}px`}}><div style={{fontFamily: "Seismic Mono", fontSize: 15, color: COLORS.verified}}>STATELESS HTTP = TRUE</div><div style={{marginTop: 10, color: COLORS.muted, fontSize: 18}}>Fresh client. Fresh process. Same durable HydraDB graph.</div></Panel>
+  const spin = Math.sin(frame / 52) * 8;
+  return <Frame duration={duration} index={5} label="STATELESS AGENT SURFACE" mode="dark">
+    <div style={{position: "absolute", inset: 0, paddingTop: 22}}>
+      <Reveal at={4}>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-end"}}>
+          <div><Kicker>Seven agent tools around one durable core</Kicker><Headline size={76} style={{marginTop: 22}}>Fresh process.<br/><span style={{color: COLORS.orange}}>Same graph truth.</span></Headline></div>
+          <div style={{display: "flex", gap: 12, marginBottom: 10}}><Status tone="green">STDIO VERIFIED</Status><Status tone="green">HTTP VERIFIED</Status></div>
+        </div>
+      </Reveal>
+      <div style={{position: "absolute", left: "50%", top: 545, width: 0, height: 0}}>
+        <div style={{position: "absolute", left: -950, top: -360, width: 1900, height: 720, border: `1px solid ${COLORS.border}`, borderRadius: "50%", opacity: .5, transform: `rotate(${spin}deg)`}} />
+        <div style={{position: "absolute", left: -355, top: -230, width: 710, height: 460, borderRadius: 999, background: "radial-gradient(circle, rgba(255,90,36,.2), rgba(255,90,36,.03) 48%, transparent 70%)", border: "1px solid rgba(255,90,36,.36)", display: "grid", placeItems: "center", opacity: ease(frame, 45)}}>
+          <div style={{width: 270, height: 270, borderRadius: "50%", background: COLORS.orange, color: COLORS.graphite, display: "grid", placeItems: "center", textAlign: "center", boxShadow: "0 0 80px rgba(255,90,36,.28)"}}>
+            <div><div style={{fontFamily: "Seismic Display", fontSize: 44, fontWeight: 700, letterSpacing: "-.05em"}}>HydraDB</div><div style={{fontFamily: "Seismic Mono", fontSize: 12, letterSpacing: ".13em", marginTop: 12}}>DURABLE CODE GRAPH</div></div>
+          </div>
+        </div>
+        {tools.map((tool, index) => <Reveal key={tool[0]} at={70 + index * 35} from={tool[1] < 0 ? "left" : "right"} style={{position: "absolute", left: tool[1], top: tool[2]}}>
+          <Sheet style={{width: 300, padding: "18px 20px", display: "flex", alignItems: "center", gap: 13, borderColor: tool[0] === "analyze_diff" ? COLORS.orange : COLORS.border}}>
+            <span style={{width: 9, height: 9, borderRadius: 99, background: tool[0] === "analyze_diff" ? COLORS.orange : COLORS.verified}} />
+            <span style={{fontFamily: "Seismic Mono", fontSize: 15, color: tool[0] === "analyze_diff" ? COLORS.orange : COLORS.paper}}>{tool[0]}</span>
+          </Sheet>
+        </Reveal>)}
+      </div>
+      <div style={{position: "absolute", left: 20, bottom: 14, right: 20, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 20, opacity: ease(frame, 410)}}>
+        <div style={{height: 1, background: `linear-gradient(90deg, transparent, ${COLORS.verified})`}} />
+        <div style={{fontFamily: "Seismic Mono", fontSize: 14, color: COLORS.verified}}>CLIENT STATE ENDS · GRAPH STATE SURVIVES</div>
+        <div style={{height: 1, background: `linear-gradient(90deg, ${COLORS.verified}, transparent)`}} />
+      </div>
+      <div style={{position: "absolute", left: 720, top: 425, width: 410, height: 240, pointerEvents: "none", opacity: ease(frame, 520)}}>
+        <div style={{position: "absolute", left: -490, top: 30, fontFamily: "Seismic Mono", fontSize: 13, color: COLORS.muted}}>FRESH PROCESS A</div>
+        <div style={{position: "absolute", right: -490, top: 30, fontFamily: "Seismic Mono", fontSize: 13, color: COLORS.muted}}>FRESH CLIENT B</div>
+      </div>
     </div>
-    <Terminal revealAt={35} stepFrames={68} style={{position: "absolute", right: 92, top: 195, width: 920, height: 650, opacity: ease(frame,22), translate: `${interpolate(ease(frame,22),[0,1],[45,0])}px 0`}} lines={[
-      {text: "$ agent → tools/call analyze_diff", tone: COLORS.muted},
-      {text: "  repository: seismic · git diff --unified=0"},
-      {text: "  touched: src/seismic/server.py::_bounded_int"},
-      {text: "← decision: REVIEW", tone: COLORS.warning},
-      {text: "  test: test_http_entrypoint_forces_stateless_json_transport", tone: COLORS.orange},
-      {text: "  entrypoint: seismic-http"},
-      {text: "  path: _bounded_int → http_main → seismic-http", tone: COLORS.verified},
-      {text: "✓ 3 impacts, each backed by HydraDB", tone: COLORS.verified},
-    ]}/>
   </Frame>;
 };

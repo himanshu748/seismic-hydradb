@@ -2,100 +2,108 @@ import type {CSSProperties, ReactNode} from "react";
 import {interpolate, spring, useCurrentFrame, useVideoConfig} from "remotion";
 import {COLORS} from "./constants";
 
-export const ease = (frame: number, at: number, duration = 22): number => interpolate(frame, [at, at + duration], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
-export const Frame: React.FC<{children: ReactNode; duration: number; index: number; label: string}> = ({children, duration, index, label}) => {
+export type FrameMode = "dark" | "paper" | "orange";
+
+export const ease = (frame: number, at: number, duration = 22): number => interpolate(
+  frame,
+  [at, at + duration],
+  [0, 1],
+  {extrapolateLeft: "clamp", extrapolateRight: "clamp"},
+);
+
+const palette = (mode: FrameMode) => {
+  if (mode === "paper") {
+    return {background: COLORS.paper, foreground: COLORS.graphite, muted: "#6f665f", line: "rgba(18,16,14,.13)"};
+  }
+  if (mode === "orange") {
+    return {background: COLORS.orange, foreground: COLORS.graphite, muted: "#58210f", line: "rgba(18,16,14,.18)"};
+  }
+  return {background: COLORS.graphite, foreground: COLORS.paper, muted: COLORS.muted, line: "rgba(245,239,230,.12)"};
+};
+
+export const Frame: React.FC<{
+  children: ReactNode;
+  duration: number;
+  index: number;
+  label: string;
+  mode?: FrameMode;
+}> = ({children, duration, index, label, mode = "dark"}) => {
   const frame = useCurrentFrame();
-  const driftX = Math.sin(frame / 72) * 3.5;
-  const driftY = Math.cos(frame / 94) * 2.5;
-  const driftScale = 1.004 + Math.sin(frame / 118) * 0.0025;
-  const glowX = 46 + Math.sin(frame / 86) * 24;
-  const glowY = 42 + Math.cos(frame / 111) * 18;
-  const sceneOpacity = interpolate(
-    frame,
-    [0, 10, Math.max(11, duration - 10), duration - 1],
-    [0, 1, 1, 0],
-    {extrapolateLeft: "clamp", extrapolateRight: "clamp"},
-  );
+  const colors = palette(mode);
+  const enter = ease(frame, 0, 12);
+  const exit = interpolate(frame, [Math.max(0, duration - 12), duration - 1], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const scan = ((frame * 2.2) % 2200) - 220;
+  const grid = mode === "dark" ? "rgba(245,239,230,.035)" : "rgba(18,16,14,.045)";
   return (
-    <div style={{position: "absolute", inset: 0, overflow: "hidden", background: COLORS.graphite, color: COLORS.paper, fontFamily: "Seismic Sans", opacity: sceneOpacity}}>
-      <SurveyGrid frame={frame} />
-      <div style={{position: "absolute", inset: -180, background: `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,90,36,.065), transparent 34%)`, filter: "blur(20px)", opacity: 0.72}} />
-      <div style={{position: "absolute", left: 0, right: 0, top: (frame * 1.8) % 1240 - 140, height: 140, background: "linear-gradient(to bottom, transparent, rgba(255,90,36,.026), transparent)", zIndex: 0}} />
-      <div style={{position: "absolute", inset: 0, zIndex: 1, translate: `${driftX}px ${driftY}px`, scale: driftScale, transformOrigin: "50% 48%"}}>{children}</div>
-      <div style={{position: "absolute", left: 86, top: 48, width: 1748, height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 1000}}>
-        <Brand />
-        <div style={{display: "flex", gap: 18, alignItems: "center", fontFamily: "Seismic Mono", fontSize: 15, letterSpacing: "0.12em", color: COLORS.muted}}>
-          <span>{label}</span><span style={{color: COLORS.orange}}>{String(index).padStart(2, "0")} / 07</span>
-        </div>
+    <div style={{position: "absolute", inset: 0, overflow: "hidden", background: colors.background, color: colors.foreground, fontFamily: "Seismic Sans", opacity: Math.min(enter, exit)}}>
+      <div style={{position: "absolute", inset: 0, backgroundImage: `linear-gradient(${grid} 1px, transparent 1px), linear-gradient(90deg, ${grid} 1px, transparent 1px)`, backgroundSize: "72px 72px", backgroundPosition: `${frame * 0.12}px ${frame * 0.07}px`, opacity: .72}} />
+      <div style={{position: "absolute", top: 0, bottom: 0, left: scan, width: 280, background: mode === "dark" ? "linear-gradient(90deg, transparent, rgba(255,90,36,.05), transparent)" : "linear-gradient(90deg, transparent, rgba(18,16,14,.035), transparent)"}} />
+      <div style={{position: "absolute", left: 42, top: 34, bottom: 34, width: 72, borderRight: `1px solid ${colors.line}`, display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-start", zIndex: 10}}>
+        <FaultMark size={42} inverted={mode === "orange"} />
+        <div style={{writingMode: "vertical-rl", rotate: "180deg", fontFamily: "Seismic Mono", fontSize: 13, letterSpacing: ".18em", color: colors.muted}}>{label}</div>
+        <div style={{fontFamily: "Seismic Mono", fontSize: 17, fontWeight: 700}}>{String(index).padStart(2, "0")}</div>
       </div>
-      <div style={{position: "absolute", left: 0, bottom: 0, zIndex: 1000, height: 5, width: `${((index - 1 + frame / duration) / 7) * 100}%`, background: COLORS.orange, boxShadow: "0 0 22px rgba(255,90,36,.42)"}} />
+      <div style={{position: "absolute", left: 144, right: 58, top: 34, height: 46, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${colors.line}`, zIndex: 10}}>
+        <span style={{fontFamily: "Seismic Display", fontSize: 23, fontWeight: 700, letterSpacing: "-.04em"}}>Seismic / proof before the patch</span>
+        <span style={{fontFamily: "Seismic Mono", fontSize: 12, letterSpacing: ".14em", color: colors.muted}}>HACK HYDRA · TRACK 02B · {String(index).padStart(2, "0")}/07</span>
+      </div>
+      <div style={{position: "absolute", inset: "92px 58px 34px 144px", zIndex: 2}}>{children}</div>
+      <div style={{position: "absolute", left: 0, bottom: 0, height: 7, width: `${((index - 1 + frame / duration) / 7) * 100}%`, background: mode === "orange" ? COLORS.graphite : COLORS.orange}} />
     </div>
   );
 };
 
-export const SurveyGrid: React.FC<{frame: number}> = ({frame}) => (
-  <div style={{position: "absolute", inset: -64, backgroundImage: "linear-gradient(rgba(245,239,230,.038) 1px, transparent 1px),linear-gradient(90deg, rgba(245,239,230,.038) 1px, transparent 1px)", backgroundPosition: `${frame * 0.16}px ${frame * 0.1}px`, backgroundSize: "64px 64px", maskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,.45) 75%, transparent 100%)"}} />
-);
-
-export const Brand: React.FC<{large?: boolean}> = ({large = false}) => (
-  <div style={{display: "flex", alignItems: "center", gap: large ? 22 : 12}}>
-    <FaultMark size={large ? 70 : 38} />
-    <span style={{fontFamily: "Seismic Display", fontSize: large ? 56 : 28, fontWeight: 700, letterSpacing: "-0.045em"}}>Seismic</span>
-  </div>
-);
-
-export const FaultMark: React.FC<{size: number}> = ({size}) => (
+export const FaultMark: React.FC<{size: number; inverted?: boolean}> = ({size, inverted = false}) => (
   <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-    <rect x="2" y="2" width="60" height="60" rx="9" fill={COLORS.orange} />
-    <path d="M8 35h15l5-18 8 31 6-20 5 7h9" fill="none" stroke={COLORS.graphite} strokeWidth="5" strokeLinejoin="round" />
+    <rect x="2" y="2" width="60" height="60" rx="10" fill={inverted ? COLORS.graphite : COLORS.orange} />
+    <path d="M8 35h15l5-18 8 31 6-20 5 7h9" fill="none" stroke={inverted ? COLORS.orange : COLORS.graphite} strokeWidth="5" strokeLinejoin="round" />
   </svg>
 );
 
-export const Headline: React.FC<{children: ReactNode; style?: CSSProperties; size?: number}> = ({children, style, size = 94}) => (
-  <div style={{fontFamily: "Seismic Display", fontSize: size, fontWeight: 700, lineHeight: 0.98, letterSpacing: "-0.055em", maxWidth: 1180, ...style}}>{children}</div>
+export const Brand: React.FC<{large?: boolean; dark?: boolean}> = ({large = false, dark = false}) => (
+  <div style={{display: "flex", alignItems: "center", gap: large ? 24 : 12, color: dark ? COLORS.graphite : "inherit"}}>
+    <FaultMark size={large ? 78 : 40} inverted={dark} />
+    <span style={{fontFamily: "Seismic Display", fontSize: large ? 64 : 28, fontWeight: 700, letterSpacing: "-.05em"}}>Seismic</span>
+  </div>
 );
 
-export const Kicker: React.FC<{children: ReactNode; tone?: string}> = ({children, tone = COLORS.orange}) => (
-  <div style={{fontFamily: "Seismic Mono", fontSize: 18, lineHeight: 1, letterSpacing: "0.15em", color: tone, textTransform: "uppercase"}}>{children}</div>
+export const Headline: React.FC<{children: ReactNode; style?: CSSProperties; size?: number}> = ({children, style, size = 100}) => (
+  <div style={{fontFamily: "Seismic Display", fontSize: size, fontWeight: 700, lineHeight: .94, letterSpacing: "-.065em", ...style}}>{children}</div>
 );
 
-export const Panel: React.FC<{children: ReactNode; style?: CSSProperties}> = ({children, style}) => (
-  <div style={{background: "rgba(27,24,21,.96)", border: `1px solid ${COLORS.border}`, borderRadius: 10, boxShadow: "0 28px 80px rgba(0,0,0,.28)", ...style}}>{children}</div>
+export const Kicker: React.FC<{children: ReactNode; tone?: string; dark?: boolean}> = ({children, tone, dark = false}) => (
+  <div style={{fontFamily: "Seismic Mono", fontSize: 16, lineHeight: 1, letterSpacing: ".16em", color: tone ?? (dark ? "#6f665f" : COLORS.orange), textTransform: "uppercase"}}>{children}</div>
 );
 
-export const Node: React.FC<{x: number; y: number; label: string; kind: string; active?: boolean; delay?: number; style?: CSSProperties}> = ({x, y, label, kind, active = false, delay = 0, style}) => {
+export const Sheet: React.FC<{children: ReactNode; style?: CSSProperties; mode?: FrameMode}> = ({children, style, mode = "dark"}) => {
+  const colors = palette(mode);
+  return <div style={{background: mode === "dark" ? "rgba(28,24,21,.92)" : "rgba(255,255,255,.52)", border: `1px solid ${colors.line}`, borderRadius: 16, boxShadow: mode === "dark" ? "0 28px 100px rgba(0,0,0,.25)" : "0 26px 90px rgba(61,42,29,.09)", ...style}}>{children}</div>;
+};
+
+export const Reveal: React.FC<{children: ReactNode; at: number; style?: CSSProperties; from?: "up" | "left" | "right" | "scale"}> = ({children, at, style, from = "up"}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const scale = spring({frame: frame - delay, fps, config: {damping: 18, mass: 0.65}});
-  const pulse = 0.5 + Math.sin(frame / 18) * 0.5;
-  return (
-    <div style={{position: "absolute", left: x, top: y, width: 214, height: 88, padding: "15px 17px", borderRadius: 8, border: `1px solid ${active ? COLORS.orange : COLORS.border}`, background: active ? "#2b1c15" : COLORS.quiet, boxShadow: active ? `0 0 0 1px rgba(255,90,36,.2), 0 0 ${28 + pulse * 18}px rgba(255,90,36,${0.1 + pulse * 0.08})` : "none", scale, ...style}}>
-      <div style={{fontFamily: "Seismic Mono", fontSize: 13, letterSpacing: "0.1em", color: active ? COLORS.orange : COLORS.muted}}>{kind}</div>
-      <div style={{fontFamily: "Seismic Mono", fontWeight: 600, fontSize: 20, marginTop: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>{label}</div>
-    </div>
-  );
+  const value = spring({frame: frame - at, fps, config: {damping: 19, mass: .68, stiffness: 120}});
+  const transforms: Record<string, string> = {
+    up: `translateY(${interpolate(value, [0, 1], [34, 0])}px)`,
+    left: `translateX(${interpolate(value, [0, 1], [-42, 0])}px)`,
+    right: `translateX(${interpolate(value, [0, 1], [42, 0])}px)`,
+    scale: `scale(${interpolate(value, [0, 1], [.78, 1])})`,
+  };
+  return <div style={{opacity: value, transform: transforms[from], ...style}}>{children}</div>;
 };
 
-export const Edge: React.FC<{x1: number; y1: number; x2: number; y2: number; label: string; active?: boolean; delay?: number}> = ({x1, y1, x2, y2, label, active = false, delay = 0}) => {
-  const frame = useCurrentFrame();
-  const progress = ease(frame, delay, 30);
-  const length = Math.hypot(x2 - x1, y2 - y1);
-  const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-  return <>
-    <div style={{position: "absolute", left: x1, top: y1, width: length, height: 2, transformOrigin: "left center", rotate: `${angle}deg`, background: active ? COLORS.orange : COLORS.border, scale: `${progress} 1`}} />
-    <div style={{position: "absolute", left: (x1 + x2) / 2 - 40, top: (y1 + y2) / 2 - 24, padding: "4px 8px", background: COLORS.graphite, fontFamily: "Seismic Mono", fontSize: 12, letterSpacing: ".08em", color: active ? COLORS.orange : COLORS.muted, opacity: progress}}>{label}</div>
-  </>;
+export const Status: React.FC<{children: ReactNode; tone?: "orange" | "green" | "yellow" | "ink"; style?: CSSProperties}> = ({children, tone = "orange", style}) => {
+  const toneMap = {orange: COLORS.orange, green: COLORS.verified, yellow: COLORS.warning, ink: COLORS.graphite};
+  const color = toneMap[tone];
+  return <span style={{display: "inline-flex", alignItems: "center", gap: 9, padding: "10px 14px", border: `1px solid ${color}`, borderRadius: 999, color, fontFamily: "Seismic Mono", fontSize: 13, letterSpacing: ".08em", ...style}}><span style={{width: 7, height: 7, borderRadius: 99, background: color}} />{children}</span>;
 };
 
-export const Terminal: React.FC<{lines: Array<{text: string; tone?: string}>; revealAt?: number; stepFrames?: number; style?: CSSProperties}> = ({lines, revealAt = 0, stepFrames = 17, style}) => {
+export const CountUp: React.FC<{value: number; at: number; suffix?: string; decimals?: number; style?: CSSProperties}> = ({value, at, suffix = "", decimals = 0, style}) => {
   const frame = useCurrentFrame();
-  return <Panel style={{overflow: "hidden", ...style}}>
-    <div style={{height: 44, borderBottom: `1px solid ${COLORS.border}`, display: "flex", alignItems: "center", gap: 8, padding: "0 16px"}}>
-      {[COLORS.critical, COLORS.warning, COLORS.verified].map((color) => <span key={color} style={{width: 9, height: 9, borderRadius: 99, background: color}} />)}
-      <span style={{marginLeft: 10, color: COLORS.muted, fontFamily: "Seismic Mono", fontSize: 13}}>agent / seismic</span>
-    </div>
-    <div style={{padding: "24px 28px", fontFamily: "Seismic Mono", fontSize: 18, lineHeight: 1.8}}>
-      {lines.map((line, index) => <div key={`${index}-${line.text}`} style={{color: line.tone ?? COLORS.paper, opacity: ease(frame, revealAt + index * stepFrames, 12), translate: `${interpolate(ease(frame, revealAt + index * stepFrames, 12), [0,1], [12,0])}px 0`}}>{line.text}</div>)}
-    </div>
-  </Panel>;
+  const current = interpolate(frame, [at, at + 38], [0, value], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
+  return <span style={style}>{current.toFixed(decimals)}{suffix}</span>;
 };

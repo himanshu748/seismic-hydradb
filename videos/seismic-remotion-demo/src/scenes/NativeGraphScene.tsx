@@ -1,32 +1,50 @@
 import {interpolate, useCurrentFrame} from "remotion";
 import {COLORS} from "../constants";
-import {Edge, Frame, Headline, Kicker, Node, Panel, ease} from "../components";
+import {Frame, Headline, Kicker, Reveal, Sheet, Status, ease} from "../components";
 
 const procedures = [
-  ["algo.SSpaths", "one changed target"],
-  ["algo.MSpaths", "multiple changed targets"],
-  ["algo.SPpaths", "one exact impact proof"],
+  ["algo.SSpaths", "one changed target", "BLAST RADIUS"],
+  ["algo.MSpaths", "multiple changes", "UNIFIED IMPACT"],
+  ["algo.SPpaths", "one result", "EXACT PROOF"],
 ];
 
 export const NativeGraphScene: React.FC<{duration: number}> = ({duration}) => {
   const frame = useCurrentFrame();
-  return <Frame duration={duration} index={6} label="HYDRADB NATIVE">
-    <div style={{position: "absolute", left: 102, top: 180, width: 710}}>
-      <Kicker>System of record + path engine</Kicker>
-      <Headline size={80} style={{marginTop: 30}}>Paths are the<br/><span style={{color: COLORS.orange}}>product primitive.</span></Headline>
-      <div style={{marginTop: 42, display: "grid", gap: 13}}>{procedures.map((item,index)=><Panel key={item[0]} style={{padding: "20px 22px", display: "grid", gridTemplateColumns: "220px 1fr", alignItems: "center", opacity: ease(frame,48+index*22)}}><strong style={{fontFamily: "Seismic Mono", color: COLORS.orange, fontSize: 18}}>{item[0]}</strong><span style={{color: COLORS.muted, fontSize: 18}}>{item[1]}</span></Panel>)}</div>
-      <div style={{marginTop: 32, color: COLORS.muted, fontSize: 22, lineHeight: 1.4, opacity: ease(frame,130)}}>Not a log sink. Remove HydraDB and the gate loses direction, reachability and proof.</div>
+  const sever = ease(frame, 610, 26);
+  return <Frame duration={duration} index={6} label="WHY HYDRADB IS ESSENTIAL" mode="paper">
+    <div style={{position: "absolute", inset: 0, display: "grid", gridTemplateColumns: "610px 1fr", gap: 54, paddingTop: 32}}>
+      <div>
+        <Reveal at={5}><Kicker dark>System of record + path engine</Kicker><Headline size={86} style={{marginTop: 25}}>HydraDB is not<br/><span style={{color: COLORS.orange}}>a log sink.</span></Headline></Reveal>
+        <Reveal at={62} from="left">
+          <div style={{fontSize: 25, color: "#6f665f", lineHeight: 1.46, marginTop: 38}}>Immutable snapshots, stable artifact identities, typed relationships and incident evidence live in one graph.</div>
+        </Reveal>
+        <div style={{marginTop: 44, display: "grid", gap: 13}}>{procedures.map((item, index) => <Reveal key={item[0]} at={105 + index * 48} from="left"><Sheet mode="paper" style={{padding: "19px 22px", display: "grid", gridTemplateColumns: "180px 1fr", alignItems: "center", background: index === 0 ? "rgba(255,90,36,.08)" : "rgba(255,255,255,.48)"}}><strong style={{fontFamily: "Seismic Mono", color: COLORS.orange}}>{item[0]}</strong><span style={{fontSize: 17}}>{item[1]}</span></Sheet></Reveal>)}</div>
+      </div>
+      <Reveal at={34} from="right">
+        <Sheet mode="paper" style={{height: 760, position: "relative", overflow: "hidden", background: "rgba(255,255,255,.62)"}}>
+          <div style={{position: "absolute", left: "50%", top: 55, bottom: 55, width: 230, marginLeft: -115, borderRadius: 120, background: COLORS.graphite, color: COLORS.paper, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", transform: `scaleX(${1 - sever * .96})`, opacity: 1-sever*.75}}>
+            <div style={{width: 118, height: 118, borderRadius: 99, background: COLORS.orange, display: "grid", placeItems: "center", color: COLORS.graphite, fontFamily: "Seismic Display", fontWeight: 700, fontSize: 29}}>HydraDB</div>
+            <div style={{fontFamily: "Seismic Mono", fontSize: 11, letterSpacing: ".14em", marginTop: 28, color: COLORS.muted}}>BOLT / OPENCYPHER</div>
+          </div>
+          {procedures.map((item, index) => {
+            const y = 130 + index * 205;
+            return <div key={item[0]} style={{position: "absolute", left: 50, right: 50, top: y, display: "grid", gridTemplateColumns: "1fr 270px 1fr", alignItems: "center", opacity: ease(frame, 150 + index * 55) * (1-sever)}}>
+              <div style={{fontFamily: "Seismic Mono", fontSize: 16, textAlign: "right", paddingRight: 35}}>{item[0]}</div>
+              <div style={{height: 2, background: COLORS.orange, position: "relative"}}><span style={{position: "absolute", left: "50%", top: -7, width: 16, height: 16, borderRadius: 99, background: COLORS.orange}} /></div>
+              <div style={{fontFamily: "Seismic Mono", fontSize: 13, letterSpacing: ".12em", paddingLeft: 35, color: COLORS.verified}}>{item[2]}</div>
+            </div>;
+          })}
+          <div style={{position: "absolute", left: 42, right: 42, bottom: 34, display: "flex", justifyContent: "space-between", opacity: ease(frame, 390) * (1-sever)}}>
+            <Status tone="ink">IMMUTABLE SNAPSHOTS</Status><Status tone="green">INCIDENT MEMORY</Status><Status tone="ink">EXACT PATHS</Status>
+          </div>
+          <div style={{position: "absolute", inset: 0, background: COLORS.orange, display: "grid", placeItems: "center", opacity: sever}}>
+            <div style={{textAlign: "center", transform: `scale(${interpolate(sever, [0, 1], [.78, 1])})`}}>
+              <div style={{fontFamily: "Seismic Mono", fontSize: 15, letterSpacing: ".17em"}}>REMOVE HYDRADB</div>
+              <div style={{fontFamily: "Seismic Display", fontSize: 72, fontWeight: 700, letterSpacing: "-.06em", marginTop: 20}}>No direction.<br/>No reachability.<br/>No proof.</div>
+            </div>
+          </div>
+        </Sheet>
+      </Reveal>
     </div>
-    <Panel style={{position: "absolute", right: 92, top: 175, width: 900, height: 700, opacity: ease(frame,24), translate: `${interpolate(ease(frame,24),[0,1],[44,0])}px 0`}}>
-      <div style={{position: "absolute", top: 28, left: 34, fontFamily: "Seismic Mono", color: COLORS.verified, fontSize: 15}}>INCIDENT EVIDENCE ACROSS SNAPSHOTS</div>
-      <Node x={55} y={145} label="calculate@a91" kind="SNAPSHOT A" active delay={55}/>
-      <Node x={345} y={145} label="pricing-identity" kind="STABLE IDENTITY" delay={82}/>
-      <Node x={635} y={145} label="calculate@b42" kind="SNAPSHOT B" active delay={110}/>
-      <Edge x1={269} y1={189} x2={345} y2={189} label="INSTANCE_OF" delay={76}/>
-      <Edge x1={559} y1={189} x2={635} y2={189} label="INSTANCE_OF" delay={104}/>
-      <Node x={345} y={390} label="checkout failure" kind="INCIDENT" delay={138}/>
-      <Edge x1={452} y1={233} x2={452} y2={390} label="TRIGGERED_BY" active delay={132}/>
-      <div style={{position: "absolute", left: 54, right: 54, bottom: 42, padding: "18px 20px", borderLeft: `3px solid ${COLORS.verified}`, background: "rgba(143,163,123,.07)", color: COLORS.muted, fontSize: 19, lineHeight: 1.45, opacity: ease(frame,165)}}>Old commits stay immutable. New rankings can still learn from exact historical breakage.</div>
-    </Panel>
   </Frame>;
 };
