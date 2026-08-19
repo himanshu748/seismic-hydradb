@@ -104,7 +104,9 @@ Final local file:
 
 Verified duration: 2:59.00. The final file is 1920x1080 H.264 with 48 kHz stereo AAC audio. Both streams passed full decode checks and the inspected proof frames show eight MCP tools, the 22-test split, conservative abstention and a durable HydraDB receipt. SHA-256: `e29e733d29d87ea4d306ef2f9954067777668aea777168f2eda5a8d86e6a918d`.
 
-TODO before submitting: upload the final MP4 to YouTube as unlisted, confirm it opens in a signed-out window and paste the public URL here and into the form.
+Public unlisted demo: https://youtu.be/8cI9_XvLKGQ
+
+The upload completed in both SD and HD. Signed-out access was verified through YouTube's public oEmbed endpoint, which returned the correct Seismic title and playable embed.
 
 The video covers the four required sections in order: the problem, what Seismic is, the working change-analysis flow and why HydraDB is essential.
 
@@ -160,7 +162,7 @@ With HydraDB running, run the live transport and database checks with:
 - Originality Confirmation: supported by the public Git history. The first participant-authored commit is dated August 17, 2026.
 - Submission Eligibility: Seismic was built for Hack Hydra and is not a substantially pre-built or previously completed project.
 - HydraDB Requirement: HydraDB stores the code graph and runs the native path queries that power Seismic's core workflow.
-- Link Accessibility: confirm only after the final YouTube URL opens while signed out. The public GitHub repository already opens while signed out.
+- Link Accessibility: the final YouTube URL and public GitHub repository both open while signed out.
 - One Submission Rule: multiple meaningfully distinct submissions are confirmed as
   allowed. HydraMind and Seismic are separate products in different tracks.
 - Final Confirmation: confirm only after every answer and link has been checked for accuracy.
@@ -168,13 +170,13 @@ With HydraDB running, run the live transport and database checks with:
 ## Final pre-submit checklist
 
 - [x] Final MP4 is under 3 minutes and has passed full video and audio decode checks
-- [ ] Video is uploaded to a public or unlisted YouTube URL
-- [ ] Video URL opens while signed out
+- [x] Video is uploaded to a public or unlisted YouTube URL
+- [x] Video URL opens while signed out
 - [x] GitHub repository opens while signed out
-- [ ] Latest commit and green CI are visible on `main`
+- [x] Latest commit and green CI are visible on `main`
 - [x] Repository contains the MIT license, README, setup instructions and HydraDB explanation
-- [ ] Official form uses `Track 2 | Repos, Dependencies + Code as Graphs`
-- [ ] Team lists Himanshu Kumar as the solo builder with team size 1
-- [ ] Required originality, eligibility, HydraDB and final confirmations are checked truthfully
+- [x] Official form uses `Track 2 | Repos, Dependencies + Code as Graphs`
+- [x] Team lists Himanshu Kumar as the solo builder with team size 1
+- [x] Required originality, eligibility, HydraDB and final confirmations are checked truthfully
 - [x] Multiple meaningfully distinct submissions are confirmed as allowed
 - [ ] Form is submitted before August 20, 2026 at 11:59 PM PT
