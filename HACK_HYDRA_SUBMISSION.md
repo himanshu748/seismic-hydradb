@@ -92,7 +92,9 @@ The repository is public and licensed under MIT. Its participant-authored histor
 
 ## Deployed project link
 
-Leave this optional field blank. Seismic is a local coding-agent tool that requires a running HydraDB node and access to a local Git checkout. A static Vercel deployment would not demonstrate the real product workflow.
+https://seismic-hydradb.vercel.app/
+
+This is the public product landing page. The real analyzer and MCP run locally because Seismic requires a running HydraDB node and access to a local Git checkout. The landing page does not pretend to expose that trusted local workflow as a public backend.
 
 ## Demo video
 

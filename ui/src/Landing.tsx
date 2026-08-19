@@ -11,10 +11,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import dashboardEvidence from "../../docs/assets/dashboard-self-analysis.png";
 import { Logo } from "./Logo";
 
 const GITHUB_URL = "https://github.com/himanshu748/seismic-hydradb";
+const DASHBOARD_EVIDENCE_URL = "/dashboard-self-analysis.png";
 
 export function Landing() {
   useEffect(() => {
@@ -86,7 +86,7 @@ export function Landing() {
             <code>HydraDB connected</code>
           </div>
           <img
-            src={dashboardEvidence}
+            src={DASHBOARD_EVIDENCE_URL}
             width="1280"
             height="720"
             loading="lazy"

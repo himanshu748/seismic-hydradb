@@ -2,6 +2,8 @@
 
 Graph-native change gates for coding agents, built on HydraDB.
 
+[Explore the Seismic landing page](https://seismic-hydradb.vercel.app/). The hosted page explains the product and evidence. Repository analysis runs locally because Seismic needs HydraDB and access to the selected Git checkout.
+
 Seismic tells a coding agent whether to proceed, review or stop before it edits code. It maps a real git diff to an immutable dependency graph, follows reverse dependency paths with HydraDB's native path procedures and returns exact tests, entrypoints and path evidence for every supported impact. When the graph cannot support an impact path, Seismic abstains.
 
 Seismic is built for Hack Hydra Track 02B: Repos, Dependencies + Code as Graphs.
