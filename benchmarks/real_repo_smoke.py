@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -12,6 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from benchmarks.provenance import git_provenance
 from seismic.config import SeismicConfig
 from seismic.db import HydraDB
 from seismic.models import RepositoryGraph
@@ -105,6 +107,8 @@ def run_smoke(repositories: dict[str, Path]) -> dict[str, Any]:
             "python": sys.version.split()[0],
             "platform": platform.platform(),
             "hydradb_uri": config.uri,
+            "hydradb_commit": os.getenv("SEISMIC_HYDRADB_COMMIT", "unspecified"),
+            **git_provenance(PROJECT_ROOT, prefix="seismic"),
         },
         "summary": {
             "repositories_indexed": len(details),

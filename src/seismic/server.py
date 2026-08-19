@@ -17,6 +17,7 @@ from seismic.db import HydraDB, HydraDBError
 from seismic.models import (
     ChangeImpactReport,
     ContextPack,
+    DecisionReceipt,
     DiffImpactReport,
     ImpactExplanation,
     IngestSummary,
@@ -158,6 +159,17 @@ def repository_status(repo_id: str, ctx: Context[RuntimeState]) -> dict[str, obj
     """Report the current immutable snapshot so agents can verify evidence freshness."""
 
     return ctx.request_context.lifespan_context.service.repository_status(repo_id)
+
+
+@mcp.tool()
+def decision_history(
+    repo_id: str,
+    ctx: Context[RuntimeState],
+    limit: int = 20,
+) -> list[DecisionReceipt]:
+    """Read durable change-gate receipts so agents can audit conservative fallbacks."""
+
+    return ctx.request_context.lifespan_context.service.decision_history(repo_id, limit)
 
 
 def main() -> None:

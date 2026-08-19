@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 
+from benchmarks.provenance import git_provenance
 from seismic.config import SeismicConfig
 from seismic.db import HydraDB
 from seismic.identity import relationship_id, stable_id
@@ -80,6 +82,8 @@ def run_stress(query_count: int) -> dict[str, Any]:
             "python": sys.version.split()[0],
             "platform": platform.platform(),
             "hydradb_uri": config.uri,
+            "hydradb_commit": os.getenv("SEISMIC_HYDRADB_COMMIT", "unspecified"),
+            **git_provenance(PROJECT_ROOT, prefix="seismic"),
         },
         "configuration": {
             "repository_namespace": repo_id,

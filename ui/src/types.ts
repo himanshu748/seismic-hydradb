@@ -29,6 +29,10 @@ export type RepositoryStatus = {
   status: string;
   artifact_count: number;
   relationship_count: number;
+  unresolved_imports: number;
+  unresolved_calls: number;
+  skipped_files: number;
+  evidence_complete: boolean;
   created_at: string;
 };
 
@@ -94,4 +98,14 @@ export type ChangeReport = {
   results: ImpactResult[];
   unresolved_targets: string[];
   warnings: string[];
+  evidence: {
+    status: "supported" | "bounded-empty" | "incomplete";
+    complete: boolean;
+    fallback: boolean;
+    reason: string;
+    unresolved_imports: number;
+    unresolved_calls: number;
+    skipped_files: number;
+  };
+  receipt_id: string;
 };

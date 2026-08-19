@@ -8,6 +8,7 @@ from typing import Literal, TypedDict
 ArtifactKind = Literal["file", "function", "class", "test", "entrypoint", "package_version"]
 RelationshipKind = Literal["PART_OF", "IMPORTS", "CALLS", "TESTS", "STARTS_AT", "DEPENDS_ON"]
 GateDecision = Literal["safe", "review", "block"]
+EvidenceStatus = Literal["supported", "bounded-empty", "incomplete"]
 
 
 @dataclass(slots=True)
@@ -145,6 +146,36 @@ class ChangeGate(TypedDict):
     reasons: list[str]
 
 
+class EvidenceCoverage(TypedDict):
+    """Explain whether the graph supports, bounds, or cannot justify a decision."""
+
+    status: EvidenceStatus
+    complete: bool
+    fallback: bool
+    reason: str
+    unresolved_imports: int
+    unresolved_calls: int
+    skipped_files: int
+
+
+class DecisionReceipt(TypedDict):
+    """Durable HydraDB audit record for one agent-facing change decision."""
+
+    id: str
+    repo_id: str
+    snapshot_id: str
+    analysis_kind: str
+    created_at: str
+    decision: GateDecision
+    evidence_status: EvidenceStatus
+    fallback: bool
+    reason: str
+    targets: list[str]
+    unresolved_targets: list[str]
+    supported_impacts: int
+    max_risk_score: float
+
+
 class ChangeImpactReport(TypedDict):
     """Complete result of analyzing one planned repository change."""
 
@@ -156,6 +187,8 @@ class ChangeImpactReport(TypedDict):
     results: list[ImpactResult]
     unresolved_targets: list[str]
     warnings: list[str]
+    evidence: EvidenceCoverage
+    receipt_id: str
 
 
 class DiffImpactReport(ChangeImpactReport):

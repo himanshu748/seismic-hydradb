@@ -16,7 +16,7 @@ Ask about a symbol that does not exist and Seismic returns zero. Ask for an unsu
 
 # Scene 5
 
-The same engine is exposed as stateless MCP tools. A coding agent can index a repository, analyze a diff, retrieve context, explain one impact path and record a real incident. Durable state is in HydraDB, so a fresh standard input process and a fresh HTTP client recover the same graph.
+The same engine is exposed as eight stateless MCP tools. A coding agent can index a repository, analyze a diff, retrieve context, explain one impact path, record a real incident and inspect durable decision history. State is in HydraDB, so a fresh standard input process and a fresh HTTP client recover the same graph.
 
 # Scene 6
 
@@ -24,4 +24,4 @@ HydraDB is not a log sink. It is Seismic's system of record and path engine. Imm
 
 # Scene 7
 
-Working product, not a mock. Nineteen tests pass: sixteen fast and three live against HydraDB and MCP. Our twelve-case smoke proves ten exact paths and two abstentions. On identical tasks, graph retrieval scores one point zero precision and recall; TF-IDF scores zero point one three two one. Across three real Python repositories, a deterministic target rule returned forty-nine impacts, every path valid. A five-thousand-artifact, twenty-thousand-relationship stress graph recovered twenty-five of twenty-five targets. Seismic gives coding agents an inspectable gate before they edit.
+Working product, not a mock. Twenty-two tests pass: nineteen fast and three live against HydraDB and MCP. Our twelve-case smoke proves ten exact paths and two abstentions. On identical tasks, graph retrieval scores one point zero precision and recall; TF-IDF scores zero point one three two one. Across three real Python repositories, a deterministic target rule returned forty-nine impacts, every path valid. A five-thousand-artifact, twenty-thousand-relationship stress graph recovered twenty-five of twenty-five targets. Seismic gives coding agents an inspectable gate before they edit.

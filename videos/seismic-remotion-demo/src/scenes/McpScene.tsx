@@ -9,7 +9,8 @@ const tools = [
   ["retrieve_context", 420, -240],
   ["explain_impact", 420, -70],
   ["record_incident", 420, 100],
-  ["repository_status", -115, 295],
+  ["repository_status", -650, 270],
+  ["decision_history", 420, 270],
 ] as const;
 
 export const McpScene: React.FC<{duration: number}> = ({duration}) => {
@@ -19,7 +20,7 @@ export const McpScene: React.FC<{duration: number}> = ({duration}) => {
     <div style={{position: "absolute", inset: 0, paddingTop: 22}}>
       <Reveal at={4}>
         <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-end"}}>
-          <div><Kicker>Seven agent tools around one durable core</Kicker><Headline size={76} style={{marginTop: 22}}>Fresh process.<br/><span style={{color: COLORS.orange}}>Same graph truth.</span></Headline></div>
+          <div><Kicker>Eight agent tools around one durable core</Kicker><Headline size={76} style={{marginTop: 22}}>Fresh process.<br/><span style={{color: COLORS.orange}}>Same graph truth.</span></Headline></div>
           <div style={{display: "flex", gap: 12, marginBottom: 10}}><Status tone="green">STDIO VERIFIED</Status><Status tone="green">HTTP VERIFIED</Status></div>
         </div>
       </Reveal>

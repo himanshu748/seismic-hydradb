@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import time
 import uuid
@@ -15,13 +16,17 @@ from seismic.db import HydraDB
 from seismic.diffing import ChangedFile, parse_unified_diff
 from seismic.gate import build_change_gate
 from seismic.identity import relationship_id, stable_id
-from seismic.ingest import SnapshotWriter
+from seismic.ingest import SnapshotWriter, repository_index_lock
 from seismic.models import (
     ChangeImpactReport,
     ContextPack,
+    DecisionReceipt,
     DiffImpactReport,
+    EvidenceCoverage,
     EvidenceHop,
     EvidenceNode,
+    EvidenceStatus,
+    GateDecision,
     ImpactExplanation,
     ImpactResult,
     IngestSummary,
@@ -65,10 +70,16 @@ class SeismicService:
     def index_repository(self, repo_path: str, repo_id: str | None = None) -> IngestSummary:
         """Build and activate a validated immutable code-graph snapshot for agents."""
 
+        activation_started_at = datetime.now(UTC).isoformat()
         started = time.perf_counter()
         graph = self.parser.parse(repo_path, explicit_repo_key=repo_id)
         elapsed = (time.perf_counter() - started) * 1_000
-        return self.writer.write(graph, elapsed)
+        with repository_index_lock(graph.repo_key):
+            return self.writer.write(
+                graph,
+                elapsed,
+                activation_started_at=activation_started_at,
+            )
 
     def analyze_change(
         self,
@@ -76,10 +87,13 @@ class SeismicService:
         targets: list[str],
         max_hops: int = 4,
         limit: int = 30,
+        *,
+        analysis_kind: str = "targets",
     ) -> ChangeImpactReport:
         """Rank exact reverse-dependency paths before an agent changes code."""
 
         repo_key, snapshot_key = self._active_snapshot(repo_id)
+        coverage = self._snapshot_coverage(snapshot_key)
         clean_targets = _target_list(targets)
         max_hops = _bounded(max_hops, "max_hops", 1, self.config.max_hops)
         limit = _bounded(limit, "limit", 1, self.config.max_results)
@@ -97,7 +111,13 @@ class SeismicService:
                     warnings.append(f"Ambiguous target {target}; candidates: {alternatives}")
         if not resolved:
             empty_results: list[ImpactResult] = []
-            return {
+            evidence = self._build_evidence_coverage(
+                coverage=coverage,
+                targets=clean_targets,
+                results=empty_results,
+                unresolved_targets=unresolved,
+            )
+            report: ChangeImpactReport = {
                 "repo_id": repo_key,
                 "snapshot_id": snapshot_key,
                 "targets": clean_targets,
@@ -106,11 +126,15 @@ class SeismicService:
                     targets=clean_targets,
                     results=empty_results,
                     unresolved_targets=unresolved,
+                    evidence_complete=evidence["complete"],
                 ),
                 "results": empty_results,
                 "unresolved_targets": unresolved,
                 "warnings": warnings,
+                "evidence": evidence,
+                "receipt_id": "",
             }
+            return self._finalize_analysis(report, analysis_kind)
         fetch_limit = min(2_000, max(limit * 8, limit))
         paths = self._impact_paths(resolved, max_hops, fetch_limit)
         best_paths: dict[int, tuple[Path, dict[str, object]]] = {}
@@ -182,7 +206,13 @@ class SeismicService:
             key=lambda item: (-item["risk_score"], item["hop_distance"], item["artifact_key"])
         )
         ranked_results = results[:limit]
-        return {
+        evidence = self._build_evidence_coverage(
+            coverage=coverage,
+            targets=clean_targets,
+            results=results,
+            unresolved_targets=unresolved,
+        )
+        report = {
             "repo_id": repo_key,
             "snapshot_id": snapshot_key,
             "targets": clean_targets,
@@ -191,11 +221,15 @@ class SeismicService:
                 targets=clean_targets,
                 results=results,
                 unresolved_targets=unresolved,
+                evidence_complete=evidence["complete"],
             ),
             "results": ranked_results,
             "unresolved_targets": unresolved,
             "warnings": warnings,
+            "evidence": evidence,
+            "receipt_id": "",
         }
+        return self._finalize_analysis(report, analysis_kind)
 
     def analyze_diff(
         self,
@@ -207,11 +241,18 @@ class SeismicService:
         """Resolve a unified diff and return an actionable, evidence-backed change gate."""
 
         repo_key, snapshot_key = self._active_snapshot(repo_id)
+        coverage = self._snapshot_coverage(snapshot_key)
         changes = parse_unified_diff(diff)
         targets, warnings = self._diff_targets(snapshot_key, changes)
         if not targets:
             results: list[ImpactResult] = []
-            return {
+            evidence = self._build_evidence_coverage(
+                coverage=coverage,
+                targets=[],
+                results=results,
+                unresolved_targets=[],
+            )
+            empty_report: DiffImpactReport = {
                 "repo_id": repo_key,
                 "snapshot_id": snapshot_key,
                 "targets": [],
@@ -221,12 +262,23 @@ class SeismicService:
                     targets=[],
                     results=results,
                     unresolved_targets=[],
+                    evidence_complete=evidence["complete"],
                 ),
                 "results": results,
                 "unresolved_targets": [],
                 "warnings": warnings or ["The diff did not touch an indexed artifact."],
+                "evidence": evidence,
+                "receipt_id": "",
             }
-        raw_report = self.analyze_change(repo_key, targets, max_hops, limit)
+            empty_report["receipt_id"] = self._record_decision_receipt(empty_report, "diff")
+            return empty_report
+        raw_report = self.analyze_change(
+            repo_key,
+            targets,
+            max_hops,
+            limit,
+            analysis_kind="diff",
+        )
         report: DiffImpactReport = {
             **raw_report,
             "diff_files": [change.path for change in changes],
@@ -290,7 +342,13 @@ class SeismicService:
                 "abstained": True,
                 "warnings": ["No credible lexical or caller-provided seed was found."],
             }
-        report = self.analyze_change(repo_key, seed_targets, max_hops=3, limit=limit)
+        report = self.analyze_change(
+            repo_key,
+            seed_targets,
+            max_hops=3,
+            limit=limit,
+            analysis_kind="context",
+        )
         return {
             "repo_id": repo_key,
             "snapshot_id": snapshot_key,
@@ -427,10 +485,18 @@ RETURN path
             "RETURN snapshot.commit_sha AS commit_sha, snapshot.status AS status, "
             "snapshot.artifact_count AS artifact_count, "
             "snapshot.relationship_count AS relationship_count, "
+            "snapshot.unresolved_imports AS unresolved_imports, "
+            "snapshot.unresolved_calls AS unresolved_calls, "
+            "snapshot.skipped_files AS skipped_files, "
+            "snapshot.coverage_recorded AS coverage_recorded, "
             "snapshot.created_at AS created_at",
             {"snapshot_id": stable_id("snapshot", snapshot_key)},
         )
         row = rows[0] if rows else {}
+        unresolved_imports = int(row.get("unresolved_imports", 0) or 0)
+        unresolved_calls = int(row.get("unresolved_calls", 0) or 0)
+        skipped_files = int(row.get("skipped_files", 0) or 0)
+        coverage_recorded = bool(row.get("coverage_recorded", False))
         return {
             "repo_id": repo_key,
             "snapshot_id": snapshot_key,
@@ -438,8 +504,224 @@ RETURN path
             "status": str(row.get("status", "unknown")),
             "artifact_count": int(row.get("artifact_count", 0) or 0),
             "relationship_count": int(row.get("relationship_count", 0) or 0),
+            "unresolved_imports": unresolved_imports,
+            "unresolved_calls": unresolved_calls,
+            "skipped_files": skipped_files,
+            "evidence_complete": coverage_recorded
+            and unresolved_imports == 0
+            and unresolved_calls == 0
+            and skipped_files == 0,
             "created_at": str(row.get("created_at", "")),
         }
+
+    def decision_history(self, repo_id: str, limit: int = 20) -> list[DecisionReceipt]:
+        """Return durable agent decision receipts, including every conservative fallback."""
+
+        repo_key = _repo_id(repo_id)
+        limit = _bounded(limit, "limit", 1, 100)
+        rows = self.db.query(
+            "MATCH (receipt:DecisionReceipt)-[:EVALUATED_SNAPSHOT]->(snapshot:Snapshot) "
+            "WHERE receipt.repo_key = $repo_key "
+            "RETURN receipt.key AS id, receipt.repo_key AS repo_id, "
+            "receipt.snapshot_key AS snapshot_id, receipt.analysis_kind AS analysis_kind, "
+            "receipt.created_at AS created_at, receipt.decision AS decision, "
+            "receipt.evidence_status AS evidence_status, receipt.fallback AS fallback, "
+            "receipt.reason AS reason, receipt.targets_json AS targets_json, "
+            "receipt.unresolved_targets_json AS unresolved_targets_json, "
+            "receipt.supported_impacts AS supported_impacts, "
+            "receipt.max_risk_score AS max_risk_score "
+            "ORDER BY receipt.created_at DESC LIMIT $limit",
+            {"repo_key": repo_key, "limit": limit},
+        )
+        return [
+            {
+                "id": str(row.get("id", "")),
+                "repo_id": str(row.get("repo_id", repo_key)),
+                "snapshot_id": str(row.get("snapshot_id", "")),
+                "analysis_kind": str(row.get("analysis_kind", "")),
+                "created_at": str(row.get("created_at", "")),
+                "decision": _gate_decision(row.get("decision", "review")),
+                "evidence_status": _evidence_status(row.get("evidence_status", "incomplete")),
+                "fallback": bool(row.get("fallback", False)),
+                "reason": str(row.get("reason", "")),
+                "targets": _json_string_list(row.get("targets_json", "[]")),
+                "unresolved_targets": _json_string_list(row.get("unresolved_targets_json", "[]")),
+                "supported_impacts": int(row.get("supported_impacts", 0) or 0),
+                "max_risk_score": float(row.get("max_risk_score", 0.0) or 0.0),
+            }
+            for row in rows
+        ]
+
+    def _snapshot_coverage(self, snapshot_key: str) -> dict[str, int | bool]:
+        rows = self.db.query(
+            "MATCH (snapshot:Snapshot {id: $snapshot_id}) "
+            "RETURN snapshot.unresolved_imports AS unresolved_imports, "
+            "snapshot.unresolved_calls AS unresolved_calls, "
+            "snapshot.skipped_files AS skipped_files, "
+            "snapshot.coverage_recorded AS coverage_recorded",
+            {"snapshot_id": stable_id("snapshot", snapshot_key)},
+        )
+        row = rows[0] if rows else {}
+        unresolved_imports = int(row.get("unresolved_imports", 0) or 0)
+        unresolved_calls = int(row.get("unresolved_calls", 0) or 0)
+        skipped_files = int(row.get("skipped_files", 0) or 0)
+        recorded = bool(row.get("coverage_recorded", False))
+        return {
+            "recorded": recorded,
+            "complete": recorded
+            and unresolved_imports == 0
+            and unresolved_calls == 0
+            and skipped_files == 0,
+            "unresolved_imports": unresolved_imports,
+            "unresolved_calls": unresolved_calls,
+            "skipped_files": skipped_files,
+        }
+
+    def _build_evidence_coverage(
+        self,
+        *,
+        coverage: dict[str, int | bool],
+        targets: list[str],
+        results: list[ImpactResult],
+        unresolved_targets: list[str],
+    ) -> EvidenceCoverage:
+        complete = bool(coverage["complete"])
+        unresolved_imports = int(coverage["unresolved_imports"])
+        unresolved_calls = int(coverage["unresolved_calls"])
+        skipped_files = int(coverage["skipped_files"])
+        status: EvidenceStatus
+        if unresolved_targets:
+            status = "incomplete"
+            fallback = True
+            reason = (
+                f"{len(unresolved_targets)} change target"
+                f"{'s could' if len(unresolved_targets) != 1 else ' could'} not be resolved. "
+                "Seismic withheld a safe decision and logged this fallback."
+            )
+        elif not targets:
+            status = "incomplete"
+            fallback = True
+            reason = (
+                "No indexed symbol could be resolved from the supplied change. "
+                "Seismic withheld a safe decision and logged this fallback."
+            )
+        elif not complete:
+            status = "incomplete"
+            fallback = True
+            if not bool(coverage["recorded"]):
+                reason = (
+                    "The active snapshot predates evidence coverage receipts. "
+                    "Re-index before relying on a safe decision."
+                )
+            else:
+                reason = (
+                    "The active snapshot contains "
+                    f"{unresolved_imports} unresolved import"
+                    f"{'s' if unresolved_imports != 1 else ''}, "
+                    f"{unresolved_calls} unresolved call"
+                    f"{'s' if unresolved_calls != 1 else ''} and "
+                    f"{skipped_files} skipped file"
+                    f"{'s' if skipped_files != 1 else ''}. "
+                    "Seismic withheld a safe decision and logged this fallback."
+                )
+        elif results:
+            status = "supported"
+            fallback = False
+            reason = (
+                f"HydraDB supports {len(results)} downstream impact path"
+                f"{'s' if len(results) != 1 else ''}."
+            )
+        else:
+            status = "bounded-empty"
+            fallback = False
+            reason = (
+                "The target resolved in a complete snapshot, but HydraDB found no supported "
+                "downstream path within the requested bound."
+            )
+        return {
+            "status": status,
+            "complete": complete,
+            "fallback": fallback,
+            "reason": reason,
+            "unresolved_imports": unresolved_imports,
+            "unresolved_calls": unresolved_calls,
+            "skipped_files": skipped_files,
+        }
+
+    def _finalize_analysis(
+        self,
+        report: ChangeImpactReport,
+        analysis_kind: str,
+    ) -> ChangeImpactReport:
+        report["receipt_id"] = self._record_decision_receipt(report, analysis_kind)
+        return report
+
+    def _record_decision_receipt(
+        self,
+        report: ChangeImpactReport,
+        analysis_kind: str,
+    ) -> str:
+        receipt_key = str(uuid.uuid4())
+        receipt_id = stable_id("decision-receipt", receipt_key)
+        snapshot_id = stable_id("snapshot", report["snapshot_id"])
+        edge_id = relationship_id(
+            receipt_key,
+            "EVALUATED_SNAPSHOT",
+            receipt_id,
+            snapshot_id,
+        )
+        now = datetime.now(UTC).isoformat()
+        row = {
+            "snapshot_id": snapshot_id,
+            "receipt_id": receipt_id,
+            "receipt_key": receipt_key,
+            "repo_key": report["repo_id"],
+            "snapshot_key": report["snapshot_id"],
+            "analysis_kind": _text(analysis_kind, "analysis_kind", 60),
+            "created_at": now,
+            "decision": report["gate"]["decision"],
+            "evidence_status": report["evidence"]["status"],
+            "fallback": report["evidence"]["fallback"],
+            "reason": report["evidence"]["reason"],
+            "targets_json": json.dumps(report["targets"], separators=(",", ":")),
+            "unresolved_targets_json": json.dumps(
+                report["unresolved_targets"], separators=(",", ":")
+            ),
+            "supported_impacts": report["gate"]["impacted_artifacts"],
+            "max_risk_score": report["gate"]["max_risk_score"],
+            "edge_id": edge_id,
+        }
+        self.db.execute_write(
+            "UNWIND $rows AS row "
+            "MERGE (receipt {id: row.receipt_id}) "
+            "SET receipt:DecisionReceipt, receipt.key = row.receipt_key, "
+            "receipt.repo_key = row.repo_key, receipt.snapshot_key = row.snapshot_key, "
+            "receipt.analysis_kind = row.analysis_kind, receipt.created_at = row.created_at, "
+            "receipt.decision = row.decision, "
+            "receipt.evidence_status = row.evidence_status, "
+            "receipt.fallback = row.fallback, receipt.reason = row.reason, "
+            "receipt.targets_json = row.targets_json, "
+            "receipt.unresolved_targets_json = row.unresolved_targets_json, "
+            "receipt.supported_impacts = row.supported_impacts, "
+            "receipt.max_risk_score = row.max_risk_score",
+            {"rows": [row]},
+        )
+        self.db.execute_write(
+            "UNWIND $rows AS row "
+            "MATCH (receipt:DecisionReceipt {id: row.receipt_id}), "
+            "(snapshot:Snapshot {id: row.snapshot_id}) "
+            "MERGE (receipt)-[edge:EVALUATED_SNAPSHOT {id: row.edge_id}]->(snapshot)",
+            {"rows": [row]},
+        )
+        rows = self.db.query(
+            "MATCH (receipt:DecisionReceipt {id: $receipt_id})"
+            "-[:EVALUATED_SNAPSHOT]->(snapshot:Snapshot {id: $snapshot_id}) "
+            "RETURN receipt.key AS key",
+            {"receipt_id": receipt_id, "snapshot_id": snapshot_id},
+        )
+        if not rows or str(rows[0].get("key", "")) != receipt_key:
+            raise RuntimeError("HydraDB did not confirm the decision receipt")
+        return receipt_key
 
     def _active_snapshot(self, repo_id: str) -> tuple[str, str]:
         clean = _repo_id(repo_id)
@@ -726,6 +1008,32 @@ def _ranges_overlap(ranges: tuple[tuple[int, int], ...], start: int, end: int) -
     if start <= 0 or end < start:
         return False
     return any(range_start <= end and range_end >= start for range_start, range_end in ranges)
+
+
+def _json_string_list(value: object) -> list[str]:
+    """Decode a compact string-list property stored through HydraDB Bolt."""
+
+    if not isinstance(value, str):
+        return []
+    try:
+        decoded = json.loads(value)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(decoded, list):
+        return []
+    return [item for item in decoded if isinstance(item, str)]
+
+
+def _gate_decision(value: object) -> GateDecision:
+    if value == "safe" or value == "review" or value == "block":
+        return value
+    return "review"
+
+
+def _evidence_status(value: object) -> EvidenceStatus:
+    if value == "supported" or value == "bounded-empty" or value == "incomplete":
+        return value
+    return "incomplete"
 
 
 def _target_list(values: list[str]) -> list[str]:

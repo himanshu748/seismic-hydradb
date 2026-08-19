@@ -1,11 +1,16 @@
 {
   "kind": "self-authored Track 02 evaluation",
-  "generated_at": "2026-08-17T15:19:10.387551+00:00",
-  "commit": "1870fe3ab2300642b9f63942259b9b36439b3746",
+  "generated_at": "2026-08-19T15:03:57.948135+00:00",
+  "commit": "c4ae16c2f0b6cef264fe4f1461e14208a278b819",
   "environment": {
     "python": "3.12.11",
     "platform": "macOS-26.5.1-arm64-arm-64bit",
-    "hydradb_uri": "neo4j://127.0.0.1:7688"
+    "hydradb_uri": "neo4j://127.0.0.1:17699",
+    "hydradb_commit": "6a2fbb192f37f51a93690a2ae2d2f5e27e6e4219",
+    "seismic_commit": "c4ae16c2f0b6cef264fe4f1461e14208a278b819",
+    "seismic_branch": "main",
+    "seismic_benchmark_source_dirty": "true",
+    "seismic_benchmark_source_patch_sha256": "31c9e03274897bd0e903a5f4e5e68c89ab26b92f3f65d83e1545235ea7137ada"
   },
   "dataset": {
     "path": "benchmarks/tasks.json",
@@ -15,16 +20,16 @@
     "repositories": {
       "hydramind-eval": {
         "repo_id": "hydramind-eval",
-        "snapshot_id": "hydramind-eval@224ac172fa561300e19500ae19b831a9fa000d0a",
-        "commit_sha": "224ac172fa561300e19500ae19b831a9fa000d0a",
-        "files": 25,
-        "artifacts": 245,
+        "snapshot_id": "hydramind-eval@worktree-872a5b625f5786f1",
+        "commit_sha": "6a94c0c6bc5875b18324e0942c8fd767698ad4b7",
+        "files": 24,
+        "artifacts": 232,
         "packages": 2,
-        "relationships": 445,
-        "unresolved_imports": 33,
-        "unresolved_calls": 1122,
+        "relationships": 427,
+        "unresolved_imports": 31,
+        "unresolved_calls": 998,
         "skipped_files": 0,
-        "duration_ms": 273.669,
+        "duration_ms": 98.13,
         "activated": true,
         "warnings": []
       }
@@ -39,8 +44,8 @@
       "abstention_total": 2,
       "exact_path_tasks_valid": 10,
       "exact_path_tasks_total": 10,
-      "latency_p50_ms": 67.898,
-      "latency_p95_ms": 239.921
+      "latency_p50_ms": 23.282,
+      "latency_p95_ms": 59.725
     },
     "tfidf": {
       "precision_at_k": 0.1321,
@@ -48,8 +53,8 @@
       "mrr": 0.225,
       "abstention_correct": 2,
       "abstention_total": 2,
-      "latency_p50_ms": 1.956,
-      "latency_p95_ms": 49.482
+      "latency_p50_ms": 0.648,
+      "latency_p95_ms": 1.159
     },
     "hybrid": {
       "precision_at_k": 1.0,
@@ -90,7 +95,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 71.064
+        "latency_ms": 24.332
       },
       "tfidf": {
         "retrieved": [
@@ -103,19 +108,19 @@
           "tests/test_conflict.py"
         ],
         "scores": [
-          0.457223,
-          0.162022,
-          0.14031,
-          0.102594,
-          0.094465,
-          0.076752,
-          0.075478
+          0.456953,
+          0.162279,
+          0.139974,
+          0.102555,
+          0.093884,
+          0.076547,
+          0.07557
         ],
         "precision_at_k": 0.1429,
         "recall_at_k": 0.1429,
         "mrr": 0.25,
         "abstention_correct": false,
-        "latency_ms": 103.762
+        "latency_ms": 1.483
       },
       "hybrid": {
         "retrieved": [
@@ -155,7 +160,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 49.163
+        "latency_ms": 14.101
       },
       "tfidf": {
         "retrieved": [
@@ -163,14 +168,14 @@
           "src/hydramind/tools.py::_decay"
         ],
         "scores": [
-          0.105213,
-          0.094649
+          0.103608,
+          0.094804
         ],
         "precision_at_k": 0.0,
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 1.904
+        "latency_ms": 0.63
       },
       "hybrid": {
         "retrieved": [
@@ -205,7 +210,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 30.569
+        "latency_ms": 13.629
       },
       "tfidf": {
         "retrieved": [
@@ -213,14 +218,14 @@
           "tests/test_server.py::test_http_entrypoint_forces_stateless_json_transport"
         ],
         "scores": [
-          0.34699,
-          0.273724
+          0.346571,
+          0.273888
         ],
         "precision_at_k": 0.5,
         "recall_at_k": 0.5,
         "mrr": 0.5,
         "abstention_correct": false,
-        "latency_ms": 1.734
+        "latency_ms": 0.65
       },
       "hybrid": {
         "retrieved": [
@@ -259,7 +264,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 54.921
+        "latency_ms": 17.648
       },
       "tfidf": {
         "retrieved": [
@@ -269,16 +274,16 @@
           "src/hydramind/tools.py::MemoryService.timeline"
         ],
         "scores": [
-          0.824411,
-          0.572838,
-          0.52365,
-          0.299683
+          0.824392,
+          0.570458,
+          0.523286,
+          0.299648
         ],
         "precision_at_k": 0.0,
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 4.768
+        "latency_ms": 0.894
       },
       "hybrid": {
         "retrieved": [
@@ -329,7 +334,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 116.626
+        "latency_ms": 27.345
       },
       "tfidf": {
         "retrieved": [
@@ -344,21 +349,21 @@
           "tests/test_db.py::FakeSession"
         ],
         "scores": [
-          0.837631,
-          0.541408,
-          0.509018,
-          0.492768,
-          0.358812,
-          0.289263,
-          0.246198,
-          0.18135,
-          0.159187
+          0.837569,
+          0.541865,
+          0.511757,
+          0.494702,
+          0.360166,
+          0.2874,
+          0.245547,
+          0.184543,
+          0.161053
         ],
         "precision_at_k": 0.0,
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 4.661
+        "latency_ms": 0.776
       },
       "hybrid": {
         "retrieved": [
@@ -410,32 +415,32 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 97.425
+        "latency_ms": 25.457
       },
       "tfidf": {
         "retrieved": [
           "src/hydramind/tools.py::_bounded_env_int",
-          "work/hydradb-upstream/scripts/bolt_graphblas_client.py::positive_int",
           "src/hydramind/web.py::HydraMindRequestHandler._read_json",
           "src/hydramind/web.py::_bounded_env_int",
           "src/hydramind/server.py::_bounded_int",
           "src/hydramind/web.py::_payload_text",
-          "src/hydramind/web.py::_payload_text_default"
+          "src/hydramind/web.py::_payload_text_default",
+          "src/hydramind/tools.py::_require_text"
         ],
         "scores": [
-          0.192832,
-          0.174641,
-          0.16308,
-          0.150152,
-          0.148142,
-          0.124811,
-          0.118748
+          0.193648,
+          0.163471,
+          0.152213,
+          0.15019,
+          0.124113,
+          0.117996,
+          0.108541
         ],
         "precision_at_k": 0.0,
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 2.007
+        "latency_ms": 0.649
       },
       "hybrid": {
         "retrieved": [
@@ -489,7 +494,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 341.651
+        "latency_ms": 27.681
       },
       "tfidf": {
         "retrieved": [
@@ -504,21 +509,21 @@
           "src/hydramind/web.py"
         ],
         "scores": [
-          0.399812,
-          0.283903,
-          0.249213,
-          0.237235,
-          0.210932,
-          0.208108,
-          0.203773,
-          0.150529,
-          0.146579
+          0.405085,
+          0.282438,
+          0.253835,
+          0.241442,
+          0.210915,
+          0.208113,
+          0.204566,
+          0.15244,
+          0.149471
         ],
         "precision_at_k": 0.0,
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 5.071
+        "latency_ms": 0.646
       },
       "hybrid": {
         "retrieved": [
@@ -564,7 +569,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 57.037
+        "latency_ms": 18.798
       },
       "tfidf": {
         "retrieved": [
@@ -574,16 +579,16 @@
           "src/hydramind/tools.py::_normalize_entity_refs"
         ],
         "scores": [
-          0.186599,
-          0.072734,
-          0.071041,
-          0.062562
+          0.194172,
+          0.075289,
+          0.070858,
+          0.062812
         ],
         "precision_at_k": 0.25,
         "recall_at_k": 0.25,
         "mrr": 1.0,
         "abstention_correct": false,
-        "latency_ms": 1.578
+        "latency_ms": 0.648
       },
       "hybrid": {
         "retrieved": [
@@ -626,7 +631,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 63.916
+        "latency_ms": 21.81
       },
       "tfidf": {
         "retrieved": [
@@ -637,17 +642,17 @@
           "src/hydramind/tools.py::_utc_now"
         ],
         "scores": [
-          0.094649,
-          0.088526,
-          0.084752,
-          0.081852,
-          0.080452
+          0.094804,
+          0.094148,
+          0.085694,
+          0.080955,
+          0.078548
         ],
         "precision_at_k": 0.0,
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": false,
-        "latency_ms": 1.288
+        "latency_ms": 0.624
       },
       "hybrid": {
         "retrieved": [
@@ -695,7 +700,7 @@
         "mrr": 1.0,
         "abstention_correct": false,
         "exact_paths_valid": true,
-        "latency_ms": 64.732
+        "latency_ms": 22.231
       },
       "tfidf": {
         "retrieved": [
@@ -708,19 +713,19 @@
           "src/hydramind/tools.py::_bounded_env_int"
         ],
         "scores": [
-          0.399812,
-          0.366277,
-          0.348578,
-          0.223343,
-          0.205342,
-          0.200975,
-          0.198239
+          0.405085,
+          0.365572,
+          0.347651,
+          0.219641,
+          0.201834,
+          0.200181,
+          0.198142
         ],
         "precision_at_k": 0.4286,
         "recall_at_k": 0.4286,
         "mrr": 0.5,
         "abstention_correct": false,
-        "latency_ms": 2.739
+        "latency_ms": 0.664
       },
       "hybrid": {
         "retrieved": [
@@ -754,7 +759,7 @@
         "mrr": 0.0,
         "abstention_correct": true,
         "exact_paths_valid": true,
-        "latency_ms": 156.689
+        "latency_ms": 59.507
       },
       "tfidf": {
         "retrieved": [],
@@ -763,7 +768,7 @@
         "recall_at_k": 0.0,
         "mrr": 0.0,
         "abstention_correct": true,
-        "latency_ms": 0.005
+        "latency_ms": 0.002
       },
       "hybrid": {
         "retrieved": [],
@@ -791,7 +796,7 @@
         "mrr": 0.0,
         "abstention_correct": true,
         "exact_paths_valid": true,
-        "latency_ms": 102.323
+        "latency_ms": 59.993
       },
       "tfidf": {
         "retrieved": [],
@@ -810,7 +815,7 @@
         "abstention_correct": true
       },
       "warnings": [
-        "Ambiguous target main; candidates: benchmarks/product_stress.py::main, benchmarks/track03_eval.py::main, examples/demo.py::main, src/hydramind/server.py::main, src/hydramind/web.py::main, videos/hydramind-judge-demo/scripts/generate_murf_audio.py::main"
+        "Ambiguous target main; candidates: benchmarks/product_stress.py::main, benchmarks/track03_eval.py::main, examples/demo.py::main, src/hydramind/server.py::main, src/hydramind/web.py::main"
       ],
       "unresolved_targets": [
         "main"

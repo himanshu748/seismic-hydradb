@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import statistics
 import subprocess
@@ -13,6 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from benchmarks.provenance import git_provenance
 from benchmarks.similarity_baseline import SimilarityIndex
 from seismic.config import SeismicConfig
 from seismic.db import HydraDB
@@ -135,6 +137,8 @@ def run_evaluation(tasks_path: Path) -> dict[str, Any]:
             "python": sys.version.split()[0],
             "platform": platform.platform(),
             "hydradb_uri": config.uri,
+            "hydradb_commit": os.getenv("SEISMIC_HYDRADB_COMMIT", "unspecified"),
+            **git_provenance(PROJECT_ROOT, prefix="seismic"),
         },
         "dataset": {
             "path": str(tasks_path.relative_to(PROJECT_ROOT)),

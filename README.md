@@ -2,9 +2,14 @@
 
 Graph-native change gates for coding agents, built on HydraDB.
 
-Seismic tells a coding agent whether to proceed, review or stop before it edits code. It maps a real git diff to an immutable dependency graph, follows reverse dependency paths with HydraDB's native path procedures and returns exact tests, entrypoints and path evidence for every decision.
+Seismic tells a coding agent whether to proceed, review or stop before it edits code. It maps a real git diff to an immutable dependency graph, follows reverse dependency paths with HydraDB's native path procedures and returns exact tests, entrypoints and path evidence for every supported impact. When the graph cannot support an impact path, Seismic abstains.
 
 Seismic is built for Hack Hydra Track 02B: Repos, Dependencies + Code as Graphs.
+
+Seismic is meaningfully distinct from the separate HydraMind Track 03 entry.
+Seismic indexes source code and computes pre-edit blast radius; HydraMind stores
+changing cross-session facts and trust provenance. They do not share product
+logic, schemas, benchmarks or user workflows.
 
 ![Seismic landing page](docs/assets/landing-change-gate.jpg)
 
@@ -27,7 +32,8 @@ The direction invariant is simple: a consumer points to its dependency. Blast ra
 
 ## What works
 
-- Immutable Git snapshots with a validated final pointer flip
+- Immutable Git snapshots with artifact and relationship validation before activation
+- Per-repository cross-process indexing locks and stale-activation rejection
 - Files, functions, classes, tests, entrypoints and package versions as graph artifacts
 - `PART_OF`, `IMPORTS`, `CALLS`, `TESTS`, `STARTS_AT` and `DEPENDS_ON` relationships
 - Native HydraDB `algo.SSpaths`, `algo.MSpaths` and `algo.SPpaths` traversal
@@ -36,6 +42,8 @@ The direction invariant is simple: a consumer points to its dependency. Blast ra
 - Required tests, affected entrypoints and CODEOWNERS routing from graph evidence
 - Transparent risk scores based on path length, fan-in and incident history
 - Incidents attached to stable identities so evidence survives new snapshots
+- Evidence coverage metadata that prevents `safe` when parsing is incomplete
+- Durable `DecisionReceipt` nodes for every gate result and conservative fallback
 - Stateless stdio and Streamable HTTP MCP transports
 - A local landing page and live change analyzer backed by the same service as MCP
 - Conservative abstention when a symbol cannot be resolved or a path does not exist
@@ -120,6 +128,7 @@ The endpoint is `http://127.0.0.1:8790/mcp`. HTTP is configured with `stateless_
 | `explain_impact` | Return one exact path between a change and an affected artifact, or abstain |
 | `record_incident` | Store real breakage evidence against stable artifact identities |
 | `repository_status` | Report the active snapshot and its artifact counts |
+| `decision_history` | Read durable gate receipts, including missing-evidence fallbacks |
 
 Every tool has a short docstring because its description is part of the agent-facing MCP contract.
 
@@ -129,11 +138,11 @@ An agent can pass the output of `git diff --unified=0` directly to `analyze_diff
 
 Every `analyze_change` and `analyze_diff` response now includes a deterministic `gate` object:
 
-- `safe`: the target resolved and no downstream path is supported within the requested bound
+- `safe`: the target resolved, snapshot coverage is complete and no downstream path is supported within the requested bound
 - `review`: supported impacts exist, or part of the supplied change could not be resolved
 - `block`: a supported impact reaches the 75 risk threshold, or the exact trigger-impact pair has prior incident evidence
 
-The gate also returns `required_tests`, ready-to-run `verification_commands`, `affected_entrypoints`, `affected_owners`, the maximum risk score and plain-language reasons. The policy lives in [`src/seismic/gate.py`](src/seismic/gate.py) so it is inspectable and replaceable. A `safe` result is bounded static evidence, not a claim of runtime certainty.
+The gate also returns `required_tests`, ready-to-run `verification_commands`, `affected_entrypoints`, `affected_owners`, the maximum risk score and plain-language reasons. Every result includes an `evidence` ledger and a durable `receipt_id`. If a target is missing or the active snapshot reports unresolved imports, calls or skipped files, Seismic withholds `safe`, returns `review` and stores the fallback reason in HydraDB. The policy lives in [`src/seismic/gate.py`](src/seismic/gate.py) so it is inspectable and replaceable. A `safe` result is bounded static evidence, not a claim of runtime certainty.
 
 ```json
 {
@@ -152,9 +161,10 @@ The gate also returns `required_tests`, ready-to-run `verification_commands`, `a
 (:Artifact)-[:PART_OF|IMPORTS|CALLS|TESTS|STARTS_AT|DEPENDS_ON]->(:Artifact)
 (:Incident)-[:TRIGGERED_BY]->(:ArtifactIdentity)
 (:Incident)-[:IMPACTED]->(:ArtifactIdentity)
+(:DecisionReceipt)-[:EVALUATED_SNAPSHOT]->(:Snapshot)
 ```
 
-Snapshot artifacts are immutable. `ArtifactIdentity` nodes carry stable logical identity across commits. Incident evidence attaches to those stable nodes, which lets later snapshots learn from prior failures without rewriting history.
+Snapshot artifacts are immutable. `ArtifactIdentity` nodes carry stable logical identity across commits. Incident evidence attaches to those stable nodes, which lets later snapshots learn from prior failures without rewriting history. `DecisionReceipt` nodes preserve what the agent decided, which targets resolved, whether evidence was complete and why a fallback was required. The `decision_history` MCP tool reads that audit trail from HydraDB across fresh processes.
 
 ## Risk scoring
 
@@ -163,10 +173,11 @@ The score is intentionally inspectable. Each result includes the exact path plus
 - hop distance
 - incident count on the affected artifact
 - incident count for the exact trigger and affected pair
-- normalized fan-in
+- normalized occurrence frequency within the bounded returned path set, exposed as
+  `fan_in` for API compatibility
 - artifact kind
 
-Seismic does not claim runtime certainty. A result means the indexed static graph supports the path. An empty result means the available graph does not support a claim.
+Seismic does not claim runtime certainty. A result means the indexed static graph supports the path. An empty result is `safe` only when the target resolved and snapshot coverage is complete. Missing targets or incomplete parser coverage produce `review` plus a durable fallback receipt.
 
 ## Verification
 
@@ -176,7 +187,7 @@ The under-three-minute judge demo is an editable, caption-free Remotion composit
 
 ```bash
 cd videos/seismic-remotion-demo
-npm install
+npm ci
 npm run audio:murf  # reads MURF_API_KEY from the environment
 npm run lint
 npm run render
@@ -200,7 +211,12 @@ cd ui && npm run build
 .venv/bin/pytest -q -m integration
 ```
 
-The current suite collects 19 tests: 16 fast tests and 3 live integration tests. The live group covers direct Bolt behavior, unified-diff gating, a fresh stdio MCP process and fresh clients against sessionless Streamable HTTP.
+The current suite collects 22 tests: 19 fast tests and 3 live integration tests. The live group covers direct Bolt behavior, durable decision receipts, unified-diff gating, a fresh stdio MCP process and fresh clients against sessionless Streamable HTTP.
+
+The fast workflow runs on every push. A separate
+[`live-hydradb.yml`](.github/workflows/live-hydradb.yml) workflow source-builds
+the pinned HydraDB commit without Docker and runs all 3 integration tests on
+`main`.
 
 ### Self-authored Track 02 evaluation
 
@@ -237,7 +253,13 @@ The checked-in [raw result](benchmarks/results/real-repositories.json) indexes t
 PYTHONPATH=src .venv/bin/python -m benchmarks.stress --queries 25
 ```
 
-The checked-in raw result is [benchmarks/results/stress.json](benchmarks/results/stress.json). It verifies a synthetic graph with 5,000 artifacts and exactly 20,000 code relationships. The current isolated local run wrote all records in 35.294 seconds and recovered the required exact target in 25/25 queries, with 6.920 ms p50 and 8.926 ms p95 query latency. Each run uses a fresh repository namespace, so these are new-node writes rather than updates to an existing graph.
+The checked-in raw result is [benchmarks/results/stress.json](benchmarks/results/stress.json). It verifies a synthetic graph with 5,000 artifacts and exactly 20,000 code relationships. The current isolated-store local run wrote and exactly validated all records in 25.515 seconds and recovered the required exact target in 25/25 queries, with 17.045 ms p50 and 21.100 ms p95 query latency. Each run uses a fresh repository namespace, so these are new-node writes rather than updates to an existing graph.
+
+Every checked-in benchmark report records the Seismic commit, branch,
+benchmark-source dirty state, a SHA-256 covering tracked changes plus nonignored
+untracked files in the benchmark execution surface and the HydraDB commit. That
+surface is `src`, `benchmarks`, `tests`, `pyproject.toml` and `uv.lock`; result
+files are excluded from their own hash.
 
 ## Configuration
 
@@ -264,6 +286,11 @@ The checked-in raw result is [benchmarks/results/stress.json](benchmarks/results
 - Qualified-name fallback can be slower than exact logical-key resolution.
 - Streamable HTTP is sessionless but intended for trusted local use. Add a real authentication boundary before exposing it on a network.
 - The dashboard is a local operator surface. It is not a hosted multi-tenant control plane.
+- Local index writers are serialized per repository, both artifact and relationship
+  counts are validated, and an older operation cannot replace a newer activation.
+  Cross-host writers still need a distributed coordination boundary.
+- The local writer lock uses POSIX `fcntl`, so the current release supports Linux
+  and macOS. Windows needs a portable lock implementation before it is supported.
 
 ## Repository map
 

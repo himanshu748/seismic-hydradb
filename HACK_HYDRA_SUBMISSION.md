@@ -12,7 +12,12 @@ Seismic gives coding agents an evidence-backed safe, review or block decision be
 
 ## Track
 
-Track 02B: Repos, Dependencies + Code as Graphs, code graphs for IDE assistants.
+Select `Track 2 | Repos, Dependencies + Code as Graphs` in the form. Seismic follows direction B from the participant guide: code graphs for IDE assistants.
+
+Seismic is meaningfully distinct from the HydraMind Track 03 entry. Seismic
+analyzes source-code dependency paths before edits; HydraMind manages changing
+cross-session facts and trust provenance. The products use different schemas,
+benchmarks and workflows.
 
 ## The problem
 
@@ -30,13 +35,13 @@ A coding agent sends either a symbol or a bounded unified diff. Seismic resolves
 - ranked impacts with exact HydraDB path evidence
 - a conservative abstention when the graph cannot support a claim
 
-The same workflow is available through seven stateless MCP tools and a local dashboard. Incident evidence attaches to stable artifact identities across snapshots, so later analyses can use previous breakage without rewriting old commits.
+The same workflow is available through eight stateless MCP tools and a local dashboard. Incident evidence attaches to stable artifact identities across snapshots, so later analyses can use previous breakage without rewriting old commits. Every gate also writes a `DecisionReceipt` to HydraDB. Missing targets or incomplete parser coverage force review and preserve the fallback reason for future agents.
 
 ## How the project uses HydraDB
 
 HydraDB is Seismic's system of record and path engine, not a replaceable log sink. Seismic connects with the official Neo4j Python driver over Bolt and stores immutable repository snapshots, artifact identities, typed code relationships and incident evidence in HydraDB.
 
-At query time, Seismic calls HydraDB's native `algo.SSpaths`, `algo.MSpaths` and `algo.SPpaths` procedures for bounded reverse dependency traversal, multi-target analysis and exact source-to-impact proof. Every gate action is derived from a returned graph path. Fresh MCP processes recover the active snapshot from HydraDB because the Python service keeps no durable project state.
+At query time, Seismic calls HydraDB's native `algo.SSpaths`, `algo.MSpaths` and `algo.SPpaths` procedures for bounded reverse dependency traversal, multi-target analysis and exact source-to-impact proof. Every supported impact is backed by a returned graph path. Unresolved inputs produce a review decision without inventing an impact path. Fresh MCP processes recover the active snapshot from HydraDB because the Python service keeps no durable project state.
 
 Without HydraDB, Seismic would lose dependency direction, bounded multi-hop reachability, inspectable path proof and durable incident links across snapshots. A vector store can retrieve similar text, but it cannot answer the core blast-radius question by itself.
 
@@ -44,13 +49,13 @@ Without HydraDB, Seismic would lose dependency direction, bounded multi-hop reac
 
 All figures below are reproducible local evidence, not official hackathon scores.
 
-- 19 tests pass: 16 database-independent tests and 3 live tests against local HydraDB plus real MCP transports
+- 22 tests pass: 19 database-independent tests and 3 live tests against local HydraDB plus real MCP transports
 - 12 source-reviewed Track 02 smoke tasks: 10 supported cases with valid exact paths and 2 correct abstentions
 - HydraDB graph retrieval: 1.0000 precision@k, 1.0000 recall@k and 1.0000 MRR
 - TF-IDF baseline on the same tasks: 0.1321 precision@k, 0.1321 recall@k and 0.2250 MRR
 - deterministic portability smoke across HydraMind, OmniDev and BlastRadius: 49 supported impacts with every returned path structurally valid
 - deterministic stress proof: 5,000 artifacts, 20,000 relationships and 25/25 exact target recoveries
-- stress query latency: 6.920 ms p50 and 8.926 ms p95 on the recorded local run
+- stress query latency: 17.045 ms p50 and 21.100 ms p95 on the recorded isolated-store run
 
 Raw results are checked into `benchmarks/results/track02-evaluation.json`, `benchmarks/results/real-repositories.json` and `benchmarks/results/stress.json`.
 
@@ -67,9 +72,17 @@ Raw results are checked into `benchmarks/results/track02-evaluation.json`, `benc
 
 ## Team members and contributions
 
-Himanshu Kumar, solo builder. Product concept, system architecture, HydraDB graph model, parser, ingestion, MCP tools, dashboard, evaluation, testing and demo video.
+Primary contact: Himanshu Kumar
+
+Team size: 1
+
+Team member: Himanshu Kumar, using the same email entered in the form's Primary Contact Email field.
+
+Contribution: solo builder responsible for the product concept, system architecture, HydraDB graph model, parser, ingestion, MCP tools, dashboard, evaluation, testing and demo video.
 
 LinkedIn: https://linkedin.com/in/himanshu748
+
+X / Twitter: @jhahimanshu653
 
 ## Public GitHub repository
 
@@ -87,9 +100,11 @@ Final local file:
 
 `videos/seismic-remotion-demo/renders/seismic-hack-hydra.mp4`
 
-Verified duration: 2:57.23. The encoded file is 1920x1080 H.264 with stereo AAC audio.
+Verified duration: 2:59.00. The final file is 1920x1080 H.264 with 48 kHz stereo AAC audio. Both streams passed full decode checks and the inspected proof frames show eight MCP tools, the 22-test split, conservative abstention and a durable HydraDB receipt. SHA-256: `e29e733d29d87ea4d306ef2f9954067777668aea777168f2eda5a8d86e6a918d`.
 
 TODO before submitting: upload the final MP4 to YouTube as unlisted, confirm it opens in a signed-out window and paste the public URL here and into the form.
+
+The video covers the four required sections in order: the problem, what Seismic is, the working change-analysis flow and why HydraDB is essential.
 
 ## Three-minute demo flow
 
@@ -97,7 +112,7 @@ TODO before submitting: upload the final MP4 to YouTube as unlisted, confirm it 
 2. Product: index a real repository into an immutable HydraDB snapshot.
 3. Working demo: analyze a changed symbol and light up the exact two-hop dependency path.
 4. Agent gate: send a unified diff and return review, required tests, an affected entrypoint and path evidence.
-5. Honest abstention: an unresolved symbol returns no impact claim.
+5. Auditable fallback: an unresolved symbol returns review, no invented impact path and a durable HydraDB receipt.
 6. HydraDB: show the native path procedures and stable cross-snapshot incident graph.
 7. Receipts: show the test split, graph-versus-TF-IDF evaluation and deterministic stress result.
 
@@ -134,15 +149,30 @@ With HydraDB running, run the live transport and database checks with:
 - A `safe` decision means no supported impact exists within the indexed graph and requested bound. It is not a claim of runtime certainty.
 - Streamable HTTP is intended for trusted local use until a real network authentication boundary is added.
 - The evaluation is a transparent self-authored smoke suite, not SWE-bench or an official Hack Hydra score.
+- Local writers use per-repository cross-process locks, validate both artifact and
+  relationship counts, and reject stale activations. Cross-host indexing would
+  require distributed coordination.
+
+## Required form confirmations
+
+- Originality Confirmation: supported by the public Git history. The first participant-authored commit is dated August 17, 2026.
+- Submission Eligibility: Seismic was built for Hack Hydra and is not a substantially pre-built or previously completed project.
+- HydraDB Requirement: HydraDB stores the code graph and runs the native path queries that power Seismic's core workflow.
+- Link Accessibility: confirm only after the final YouTube URL opens while signed out. The public GitHub repository already opens while signed out.
+- One Submission Rule: multiple meaningfully distinct submissions are confirmed as
+  allowed. HydraMind and Seismic are separate products in different tracks.
+- Final Confirmation: confirm only after every answer and link has been checked for accuracy.
 
 ## Final pre-submit checklist
 
-- [ ] Final MP4 is under 3 minutes and watched from start to finish
+- [x] Final MP4 is under 3 minutes and has passed full video and audio decode checks
 - [ ] Video is uploaded to a public or unlisted YouTube URL
 - [ ] Video URL opens while signed out
-- [ ] GitHub repository opens while signed out
+- [x] GitHub repository opens while signed out
 - [ ] Latest commit and green CI are visible on `main`
-- [ ] Repository contains the MIT license, README, setup instructions and HydraDB explanation
-- [ ] Official form uses Track 02B
-- [ ] Team lists Himanshu Kumar as the solo builder
+- [x] Repository contains the MIT license, README, setup instructions and HydraDB explanation
+- [ ] Official form uses `Track 2 | Repos, Dependencies + Code as Graphs`
+- [ ] Team lists Himanshu Kumar as the solo builder with team size 1
+- [ ] Required originality, eligibility, HydraDB and final confirmations are checked truthfully
+- [x] Multiple meaningfully distinct submissions are confirmed as allowed
 - [ ] Form is submitted before August 20, 2026 at 11:59 PM PT

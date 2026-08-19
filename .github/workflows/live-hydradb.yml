@@ -1,0 +1,99 @@
+name: Live HydraDB integration
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-hydradb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SEISMIC_URI: neo4j://127.0.0.1:17687
+      SEISMIC_TOKEN: ci-seismic-auth-token-32-characters-long
+      SEISMIC_HYDRADB_COMMIT: 6a2fbb192f37f51a93690a2ae2d2f5e27e6e4219
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out the pinned HydraDB source
+        uses: actions/checkout@v4
+        with:
+          repository: hydra-db/hydradb
+          ref: 6a2fbb192f37f51a93690a2ae2d2f5e27e6e4219
+          path: .ci/hydradb
+
+      - name: Install HydraDB build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang libclang-dev cmake pkg-config libcypher-parser-dev libgraphblas-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.91.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .ci/hydradb -> target
+
+      - name: Build graph-node from source
+        working-directory: .ci/hydradb
+        run: cargo build --locked --features server-runtime --bin graph-node
+
+      - name: Start the pinned HydraDB node
+        run: |
+          runtime_root="$RUNNER_TEMP/seismic-hydradb"
+          mkdir -p "$runtime_root/store" "$runtime_root/cache"
+          printf '%s\n' "$SEISMIC_TOKEN" > "$runtime_root/auth-token"
+          export CLOUD_PROVIDER=local
+          export LOCAL_PATH="$runtime_root/store"
+          export GRAPH_NAMESPACE=seismic-ci
+          export GRAPH_ID=default
+          export GRAPH_CELL_ID=cell-0
+          export GRAPH_CELLS=cell-0
+          export GRAPH_DATA_PATH=data
+          export GRAPH_ALLOW_PLAINTEXT=true
+          export GRAPH_AUTH_TOKEN_FILE="$runtime_root/auth-token"
+          export GRAPH_DATA_CACHE_BYTES=67108864
+          export GRAPH_DATA_CACHE_DIR="$runtime_root/cache"
+          export GRAPH_NODE_ID=node-0
+          export GRAPH_BOLT_ADDR=127.0.0.1:17687
+          export GRAPH_ADVERTISED_BOLT_ADDR=127.0.0.1:17687
+          export GRAPH_BOLT_NODE_ADDRESSES=node-0=127.0.0.1:17687
+          export GRAPH_HTTP_ADDR=127.0.0.1:18443
+          export GRAPH_ADMIN_ADDR=127.0.0.1:19091
+          export RUST_MIN_STACK=33554432
+          export RUST_LOG=warn
+          .ci/hydradb/target/debug/graph-node > "$runtime_root/node.log" 2>&1 &
+          echo $! > "$runtime_root/node.pid"
+          for _ in $(seq 1 180); do
+            if curl -fsS http://127.0.0.1:19091/readyz >/dev/null; then
+              exit 0
+            fi
+            if ! kill -0 "$(cat "$runtime_root/node.pid")" 2>/dev/null; then
+              cat "$runtime_root/node.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          cat "$runtime_root/node.log"
+          exit 1
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install locked Seismic dependencies
+        run: uv sync --extra dev --locked
+
+      - name: Run all live Bolt and MCP tests
+        run: uv run pytest -q -m integration
+
+      - name: Upload graph-node logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seismic-graph-node-log
+          path: ${{ runner.temp }}/seismic-hydradb/node.log

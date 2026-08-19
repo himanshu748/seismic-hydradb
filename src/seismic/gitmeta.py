@@ -40,6 +40,22 @@ def is_dirty(repo: Path) -> bool:
     return bool(_git(repo, "status", "--porcelain=v1", "--untracked-files=all").strip())
 
 
+def list_visible_python_files(repo: Path) -> list[Path]:
+    """List tracked and nonignored worktree Python files deterministically."""
+
+    output = _git(
+        repo,
+        "ls-files",
+        "-z",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "--",
+        "*.py",
+    )
+    return sorted(repo / relative for relative in output.split("\0") if relative)
+
+
 def collect_last_touch(
     repo: Path, paths: set[str], max_commits: int = 1_000
 ) -> dict[str, LastTouch]:

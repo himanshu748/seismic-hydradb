@@ -54,6 +54,8 @@ class FakeService:
             "results": [],
             "unresolved_targets": [],
             "warnings": [],
+            "evidence": _evidence(),
+            "receipt_id": "receipt-demo",
         }
 
     def analyze_diff(self, repo_id: str, diff: str, max_hops: int, limit: int) -> dict[str, Any]:
@@ -68,6 +70,8 @@ class FakeService:
             "results": [],
             "unresolved_targets": [],
             "warnings": [],
+            "evidence": _evidence(),
+            "receipt_id": "receipt-diff",
         }
 
     def repository_status(self, repo_id: str) -> dict[str, Any]:
@@ -82,6 +86,26 @@ class FakeService:
             "relationship_count": 9,
             "created_at": "2026-08-17T00:00:00+00:00",
         }
+
+    def decision_history(self, repo_id: str, limit: int = 20) -> list[dict[str, Any]]:
+        self.calls.append(("decisions", (repo_id, limit)))
+        return [
+            {
+                "id": "receipt-demo",
+                "repo_id": repo_id,
+                "snapshot_id": f"{repo_id}@abc123",
+                "analysis_kind": "targets",
+                "created_at": "2026-08-17T00:00:01+00:00",
+                "decision": "review",
+                "evidence_status": "incomplete",
+                "fallback": True,
+                "reason": "Safe decision withheld.",
+                "targets": ["src/a.py::missing"],
+                "unresolved_targets": ["src/a.py::missing"],
+                "supported_impacts": 0,
+                "max_risk_score": 0.0,
+            }
+        ]
 
 
 def _gate() -> dict[str, Any]:
@@ -100,6 +124,18 @@ def _gate() -> dict[str, Any]:
     }
 
 
+def _evidence() -> dict[str, Any]:
+    return {
+        "status": "incomplete",
+        "complete": False,
+        "fallback": True,
+        "reason": "Safe decision withheld.",
+        "unresolved_imports": 0,
+        "unresolved_calls": 1,
+        "skipped_files": 0,
+    }
+
+
 def test_health_index_analyze_and_status_contracts() -> None:
     service = FakeService()
     with TestClient(create_app(service)) as client:  # type: ignore[arg-type]
@@ -114,6 +150,7 @@ def test_health_index_analyze_and_status_contracts() -> None:
             json={"repo_id": "demo", "diff": "--- a/src/a.py\n+++ b/src/a.py\n@@ -1 +1 @@"},
         )
         status = client.get("/api/repositories/demo")
+        decisions = client.get("/api/repositories/demo/decisions?limit=3")
 
     assert health.status_code == 200
     assert health.json()["backend"] == "HydraDB"
@@ -122,10 +159,13 @@ def test_health_index_analyze_and_status_contracts() -> None:
     assert diffed.json()["diff_files"] == ["src/a.py"]
     assert diffed.json()["gate"]["decision"] == "review"
     assert status.json()["artifact_count"] == 8
+    assert decisions.json()[0]["id"] == "receipt-demo"
+    assert decisions.json()[0]["fallback"] is True
     assert service.calls == [
         ("index", ("/safe/repo", "demo")),
         ("analyze", ("demo", ["src/a.py::run"], 3, 30)),
         ("diff", ("demo", "--- a/src/a.py\n+++ b/src/a.py\n@@ -1 +1 @@", 4, 30)),
+        ("decisions", ("demo", 3)),
     ]
 
 

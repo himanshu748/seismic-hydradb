@@ -17,7 +17,7 @@ export const AbstentionScene: React.FC<{duration: number}> = ({duration}) => {
       </div>
       <Reveal at={28} from="right">
         <Sheet mode="paper" style={{height: 660, padding: "34px", position: "relative", overflow: "hidden"}}>
-          <div style={{display: "flex", justifyContent: "space-between", fontFamily: "Seismic Mono", fontSize: 13, color: "#70665e"}}><span>GRAPH QUERY RECEIPT</span><span>04 / ABSTAIN</span></div>
+          <div style={{display: "flex", justifyContent: "space-between", fontFamily: "Seismic Mono", fontSize: 13, color: "#70665e"}}><span>DURABLE DECISION RECEIPT</span><span>04 / ABSTAIN</span></div>
           <div style={{marginTop: 40, padding: "22px", borderRadius: 12, background: COLORS.graphite, color: COLORS.paper, fontFamily: "Seismic Mono", fontSize: 16, lineHeight: 1.7}}>
             <div style={{color: COLORS.muted}}>&gt; analyze_change</div>
             <div style={{marginTop: 6}}>server.py::<span style={{color: COLORS.orange}}>not_real</span></div>
@@ -27,7 +27,7 @@ export const AbstentionScene: React.FC<{duration: number}> = ({duration}) => {
           <div style={{position: "absolute", left: 300, top: 330, right: 34}}>
             {[["resolved targets", "0"], ["supported paths", "0"], ["invented claims", "0"]].map((item, index) => <div key={item[0]} style={{display: "flex", justifyContent: "space-between", padding: "17px 0", borderBottom: "1px solid rgba(18,16,14,.14)", fontFamily: "Seismic Mono", fontSize: 15, opacity: ease(frame, 160 + index * 32)}}><span style={{color: "#70665e"}}>{item[0]}</span><strong style={{color: index === 2 ? COLORS.verified : COLORS.graphite}}>{item[1]}</strong></div>)}
           </div>
-          <div style={{position: "absolute", left: 34, right: 34, bottom: 32, paddingTop: 18, borderTop: "2px solid rgba(18,16,14,.15)", display: "flex", justifyContent: "space-between", fontFamily: "Seismic Mono", color: COLORS.verified, opacity: ease(frame, 248)}}><span>ABSTAINED</span><span>BOUNDARY EXPOSED ✓</span></div>
+          <div style={{position: "absolute", left: 34, right: 34, bottom: 32, paddingTop: 18, borderTop: "2px solid rgba(18,16,14,.15)", display: "flex", justifyContent: "space-between", fontFamily: "Seismic Mono", color: COLORS.verified, opacity: ease(frame, 248)}}><span>ABSTAINED</span><span>PERSISTED IN HYDRADB ✓</span></div>
         </Sheet>
       </Reveal>
     </div>

@@ -4,6 +4,10 @@
 
 Seismic gives coding agents a proof-carrying change gate before they edit code. It turns a real git diff into a safe, review or block decision, backed by exact HydraDB paths, required tests and affected entrypoints.
 
+It is separate from the HydraMind Track 03 entry: Seismic models code structure
+and change blast radius, while HydraMind models changing facts, trust and
+chronology across agent sessions.
+
 ## What to inspect first
 
 1. Open the dashboard at `http://127.0.0.1:8791/app`.
@@ -21,6 +25,7 @@ Seismic gives coding agents a proof-carrying change gate before they edit code. 
 - `algo.SPpaths` proves one claimed source-to-target impact path.
 - Immutable snapshot nodes preserve commit context.
 - Stable artifact identity nodes carry incidents across snapshots.
+- Decision receipts preserve every gate outcome and missing-evidence fallback.
 - The Python process stores no durable memory. Fresh MCP processes recover the same active graph from HydraDB.
 
 Replacing HydraDB with a vector store would remove the dependency direction, bounded path proof, multi-hop reachability and stable cross-snapshot incident graph.
@@ -29,9 +34,9 @@ Replacing HydraDB with a vector store would remove the dependency direction, bou
 
 | Criterion | Evidence to verify |
 |---|---|
-| Technical execution | 19 passing tests, strict MyPy, Ruff and real stdio plus sessionless HTTP MCP clients |
-| Graph-native HydraDB use | Three native path procedures, immutable snapshots, typed relationships and stable incident identities |
-| Completeness and usability | Unified-diff change gate, seven MCP tools, local dashboard, clear startup errors and conservative abstention |
+| Technical execution | 22 passing tests, strict MyPy, Ruff and real stdio plus sessionless HTTP MCP clients |
+| Graph-native HydraDB use | Three native path procedures, immutable snapshots, typed relationships, stable incident identities and durable decision receipts |
+| Completeness and usability | Unified-diff change gate, eight MCP tools, local dashboard, clear startup errors and auditable conservative fallbacks |
 | Result quality | 10/10 exact-path tasks, 2/2 abstentions, 49 valid impacts across three real repositories and 25/25 exact stress recoveries |
 | Originality | A proof-carrying pre-edit gate that returns tests, entrypoints and inspectable dependency paths instead of similarity-only context |
 
@@ -49,7 +54,7 @@ Open the analyzer, index the Seismic checkout, select **Paste diff** and submit 
 
 ### 1:15 to 1:45, decision through evidence
 
-Point to the gate reasons, relationship labels, hop count and score breakdown. Explain that every action is derived from HydraDB path evidence. An unresolved symbol returns review, never safe.
+Point to the gate reasons, relationship labels, hop count and score breakdown. Explain that every supported impact is backed by HydraDB path evidence. An unresolved symbol or incomplete snapshot returns review without inventing a path, never safe. Show the receipt ID and explain that `decision_history` recovers the fallback from HydraDB.
 
 ### 1:45 to 2:15, product depth
 
@@ -74,7 +79,11 @@ Show the raw evaluation and stress JSON. State the scope precisely: a self-autho
 cd ui && npm run build
 ```
 
-Current test split: 16 fast tests and 3 live integration tests.
+Current test split: 19 fast tests and 3 live integration tests.
+
+The dedicated live CI workflow source-builds pinned HydraDB without Docker and
+runs the 3 integration tests on `main`. Raw benchmark reports include Git commit,
+benchmark-source patch and HydraDB provenance.
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m benchmarks.track02_eval
@@ -91,3 +100,7 @@ PYTHONPATH=src .venv/bin/python -m benchmarks.stress --queries 25
 - The parser is conservative static analysis and cannot prove runtime behavior.
 - The 12-task result is a self-authored smoke, not an official track score.
 - The HTTP transport is intended for trusted local use until authentication is added.
+- Local per-repository locking and activation timestamps prevent stale local index
+  jobs from replacing newer snapshots. Cross-host writers need distributed coordination.
+- The risk field named `fan_in` measures occurrence frequency in the bounded
+  returned path set, not global graph in-degree.

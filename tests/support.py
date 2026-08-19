@@ -8,6 +8,13 @@ def cleanup_repository(db: HydraDB, repo_id: str) -> None:
     """Delete one test repository through exact snapshot relationships and IDs."""
 
     repository_id = stable_id("repository", repo_id)
+    receipt_rows = db.query(
+        "MATCH (repo:Repository {id: $repository_id})-[:HAS_SNAPSHOT]->"
+        "(snapshot:Snapshot)<-[:EVALUATED_SNAPSHOT]-(receipt:DecisionReceipt) "
+        "RETURN receipt.id AS receipt_id",
+        {"repository_id": repository_id},
+    )
+    receipt_ids = {int(row["receipt_id"]) for row in receipt_rows}
     rows = db.query(
         "MATCH (repo:Repository {id: $repository_id})-[:HAS_SNAPSHOT]->"
         "(snapshot:Snapshot)-[:CONTAINS]->(artifact:Artifact)-[:INSTANCE_OF]->"
@@ -24,6 +31,7 @@ def cleanup_repository(db: HydraDB, repo_id: str) -> None:
         artifact_ids.add(int(row["artifact_id"]))
         identity_ids.add(int(row["identity_id"]))
     for label, node_ids in (
+        ("DecisionReceipt", receipt_ids),
         ("Artifact", artifact_ids),
         ("ArtifactIdentity", identity_ids),
         ("Snapshot", snapshot_ids),

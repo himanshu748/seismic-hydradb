@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import fcntl
+import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import TypeVar
 
 from seismic.db import HydraDB
@@ -64,10 +69,17 @@ class SnapshotWriter:
         self.db = db
         self.batch_size = batch_size
 
-    def write(self, graph: RepositoryGraph, duration_ms: float) -> IngestSummary:
+    def write(
+        self,
+        graph: RepositoryGraph,
+        duration_ms: float,
+        *,
+        activation_started_at: str | None = None,
+    ) -> IngestSummary:
         """Repair or create one snapshot, validate it, then make it current."""
 
         now = datetime.now(UTC).isoformat()
+        activation_started_at = activation_started_at or now
         repo_id = stable_id("repository", graph.repo_key)
         snapshot_id = stable_id("snapshot", graph.snapshot_key)
         self.db.execute_write(
@@ -157,18 +169,27 @@ class SnapshotWriter:
         self.db.execute_write(
             "MATCH (snapshot:Snapshot) WHERE snapshot.id = $snapshot_id "
             "SET snapshot.status = $status, snapshot.artifact_count = $artifact_count, "
-            "snapshot.relationship_count = $relationship_count",
+            "snapshot.relationship_count = $relationship_count, "
+            "snapshot.unresolved_imports = $unresolved_imports, "
+            "snapshot.unresolved_calls = $unresolved_calls, "
+            "snapshot.skipped_files = $skipped_files, "
+            "snapshot.coverage_recorded = $coverage_recorded",
             {
                 "snapshot_id": snapshot_id,
                 "status": "ready",
                 "artifact_count": len(graph.artifacts),
                 "relationship_count": len(graph.relationships),
+                "unresolved_imports": graph.unresolved_imports,
+                "unresolved_calls": graph.unresolved_calls,
+                "skipped_files": graph.skipped_files,
+                "coverage_recorded": True,
             },
         )
-        self.db.execute_write(
-            "MATCH (repo:Repository) WHERE repo.id = $repo_id "
-            "SET repo.current_snapshot_key = $snapshot_key, repo.updated_at = $updated_at",
-            {"repo_id": repo_id, "snapshot_key": graph.snapshot_key, "updated_at": now},
+        activated = self._activate_snapshot(
+            repo_id,
+            graph.snapshot_key,
+            now,
+            activation_started_at,
         )
         return {
             "repo_id": graph.repo_key,
@@ -182,7 +203,7 @@ class SnapshotWriter:
             "unresolved_calls": graph.unresolved_calls,
             "skipped_files": graph.skipped_files,
             "duration_ms": round(duration_ms, 3),
-            "activated": True,
+            "activated": activated,
             "warnings": graph.warnings,
         }
 
@@ -198,9 +219,63 @@ class SnapshotWriter:
                 "snapshot validation failed: expected "
                 f"{len(graph.artifacts)} artifacts, found {actual}"
             )
+        self._validate_relationships(graph)
         for edge in graph.relationships:
             if edge.source_id == edge.target_id:
                 raise RuntimeError("snapshot validation failed: self relationship escaped parser")
+
+    def _validate_relationships(self, graph: RepositoryGraph) -> None:
+        expected_by_type: dict[str, set[tuple[int, int]]] = {}
+        for edge in graph.relationships:
+            expected_by_type.setdefault(edge.kind, set()).add((edge.source_id, edge.target_id))
+        source_rows = [{"source_id": artifact.id} for artifact in graph.artifacts]
+        actual_by_type: dict[str, set[tuple[int, int]]] = {}
+        for relationship_type in sorted(expected_by_type):
+            actual: set[tuple[int, int]] = set()
+            for batch in _batches(source_rows, self.batch_size):
+                rows = self.db.query(
+                    "UNWIND $rows AS row "
+                    f"MATCH (source {{id: row.source_id}})-[:{relationship_type}]->(target) "
+                    "RETURN row.source_id AS source_id, target.id AS target_id",
+                    {"rows": batch},
+                )
+                actual.update((int(row["source_id"]), int(row["target_id"])) for row in rows)
+            actual_by_type[relationship_type] = actual
+        if actual_by_type != expected_by_type:
+            expected_count = sum(len(edges) for edges in expected_by_type.values())
+            actual_count = sum(len(edges) for edges in actual_by_type.values())
+            raise RuntimeError(
+                "snapshot validation failed: expected "
+                f"{expected_count} relationships, found {actual_count}"
+            )
+
+    def _activate_snapshot(
+        self,
+        repo_id: int,
+        snapshot_key: str,
+        updated_at: str,
+        activation_started_at: str,
+    ) -> bool:
+        rows = self.db.query(
+            "MATCH (repo:Repository) WHERE repo.id = $repo_id "
+            "RETURN repo.current_activation_started_at AS current_activation_started_at",
+            {"repo_id": repo_id},
+        )
+        current = str(rows[0].get("current_activation_started_at", "") or "") if rows else ""
+        if current and current > activation_started_at:
+            return False
+        self.db.execute_write(
+            "MATCH (repo:Repository) WHERE repo.id = $repo_id "
+            "SET repo.current_snapshot_key = $snapshot_key, repo.updated_at = $updated_at, "
+            "repo.current_activation_started_at = $activation_started_at",
+            {
+                "repo_id": repo_id,
+                "snapshot_key": snapshot_key,
+                "updated_at": updated_at,
+                "activation_started_at": activation_started_at,
+            },
+        )
+        return True
 
     def _merge_simple_relationship(
         self,
@@ -276,6 +351,21 @@ def _relationship_row(edge: RelationshipRecord) -> dict[str, object]:
 
 
 T = TypeVar("T")
+
+
+@contextmanager
+def repository_index_lock(repo_key: str) -> Iterator[None]:
+    """Serialize local writers for one repository across Seismic processes."""
+
+    lock_root = Path(tempfile.gettempdir()) / "seismic-index-locks"
+    lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    lock_path = lock_root / f"{stable_id('repository-index-lock', repo_key)}.lock"
+    with lock_path.open("a+", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def _batches(values: list[T], size: int) -> list[list[T]]:

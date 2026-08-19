@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import hashlib
-import os
 import re
 import sys
 import tomllib
@@ -14,7 +13,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from seismic.config import SeismicConfig
-from seismic.gitmeta import collect_last_touch, git_head, is_dirty, load_codeowners, match_owner
+from seismic.gitmeta import (
+    collect_last_touch,
+    git_head,
+    is_dirty,
+    list_visible_python_files,
+    load_codeowners,
+    match_owner,
+)
 from seismic.identity import relationship_id, stable_id
 from seismic.identity import repo_key as build_repo_key
 from seismic.models import (
@@ -89,7 +95,7 @@ class RepositoryParser:
         root = self.config.validate_repo_path(repo_path)
         sources, skipped, warnings = self._read_sources(root)
         commit_sha = git_head(root)
-        content_fingerprint = _content_fingerprint(sources)
+        content_fingerprint = _graph_input_fingerprint(root, sources)
         snapshot_version = f"worktree-{content_fingerprint[:16]}" if is_dirty(root) else commit_sha
         repository_key = (
             _clean_repo_key(explicit_repo_key)
@@ -284,59 +290,49 @@ class RepositoryParser:
         sources: list[_SourceFile] = []
         skipped = 0
         warnings: list[str] = []
-        for current, directories, filenames in os.walk(root, followlinks=False):
-            directories[:] = sorted(
-                directory
-                for directory in directories
-                if directory not in IGNORED_DIRECTORIES
-                and not (Path(current) / directory).is_symlink()
-            )
-            for filename in sorted(filenames):
-                if not filename.endswith(".py"):
-                    continue
-                path = Path(current) / filename
-                if path.is_symlink():
-                    skipped += 1
-                    continue
-                if len(sources) >= self.config.max_files:
-                    raise RepositoryParseError(
-                        f"repository exceeds SEISMIC_MAX_FILES={self.config.max_files}"
-                    )
-                try:
-                    size = path.stat().st_size
-                except OSError as exc:
-                    skipped += 1
-                    warnings.append(f"Could not stat {path.relative_to(root)}: {exc}")
-                    continue
-                if size > self.config.max_file_bytes:
-                    skipped += 1
-                    warnings.append(
-                        f"Skipped oversized file {path.relative_to(root)} ({size} bytes)"
-                    )
-                    continue
-                content = path.read_text(encoding="utf-8", errors="replace")
-                relative = path.relative_to(root).as_posix()
-                try:
-                    tree = ast.parse(content, filename=relative)
-                except SyntaxError as exc:
-                    skipped += 1
-                    warnings.append(f"Skipped unparsable Python file {relative}: {exc.msg}")
-                    continue
-                sources.append(
-                    _SourceFile(
-                        path=path,
-                        relative=relative,
-                        content=content,
-                        digest=hashlib.sha256(content.encode()).hexdigest(),
-                        tree=tree,
-                        is_test=_is_test_path(relative),
-                        imports=[
-                            node
-                            for node in ast.walk(tree)
-                            if isinstance(node, (ast.Import, ast.ImportFrom))
-                        ],
-                    )
+        for path in list_visible_python_files(root):
+            if any(part in IGNORED_DIRECTORIES for part in path.relative_to(root).parts):
+                continue
+            if path.is_symlink():
+                skipped += 1
+                continue
+            if len(sources) >= self.config.max_files:
+                raise RepositoryParseError(
+                    f"repository exceeds SEISMIC_MAX_FILES={self.config.max_files}"
                 )
+            try:
+                size = path.stat().st_size
+            except OSError as exc:
+                skipped += 1
+                warnings.append(f"Could not stat {path.relative_to(root)}: {exc}")
+                continue
+            if size > self.config.max_file_bytes:
+                skipped += 1
+                warnings.append(f"Skipped oversized file {path.relative_to(root)} ({size} bytes)")
+                continue
+            content = path.read_text(encoding="utf-8", errors="replace")
+            relative = path.relative_to(root).as_posix()
+            try:
+                tree = ast.parse(content, filename=relative)
+            except SyntaxError as exc:
+                skipped += 1
+                warnings.append(f"Skipped unparsable Python file {relative}: {exc.msg}")
+                continue
+            sources.append(
+                _SourceFile(
+                    path=path,
+                    relative=relative,
+                    content=content,
+                    digest=hashlib.sha256(content.encode()).hexdigest(),
+                    tree=tree,
+                    is_test=_is_test_path(relative),
+                    imports=[
+                        node
+                        for node in ast.walk(tree)
+                        if isinstance(node, (ast.Import, ast.ImportFrom))
+                    ],
+                )
+            )
         return sources, skipped, warnings
 
     def _assign_modules(self, sources: list[_SourceFile]) -> dict[str, _SourceFile]:
@@ -685,12 +681,29 @@ def _manifest_requirements(root: Path) -> list[tuple[str, str]]:
     return result
 
 
-def _content_fingerprint(sources: list[_SourceFile]) -> str:
+def _graph_input_fingerprint(root: Path, sources: list[_SourceFile]) -> str:
+    """Hash every worktree input that can change the emitted code graph."""
+
     digest = hashlib.sha256()
     for source in sorted(sources, key=lambda item: item.relative):
         digest.update(source.relative.encode())
         digest.update(b"\0")
         digest.update(source.digest.encode())
+        digest.update(b"\0")
+    for relative in (
+        "pyproject.toml",
+        "requirements.txt",
+        ".github/CODEOWNERS",
+        "CODEOWNERS",
+        "docs/CODEOWNERS",
+    ):
+        path = root / relative
+        digest.update(relative.encode())
+        digest.update(b"\0")
+        if path.is_file():
+            digest.update(hashlib.sha256(path.read_bytes()).digest())
+        else:
+            digest.update(b"missing")
         digest.update(b"\0")
     return digest.hexdigest()
 

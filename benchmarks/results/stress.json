@@ -1,14 +1,19 @@
 {
   "kind": "local deterministic stress proof",
-  "generated_at": "2026-08-17T15:19:23.130608+00:00",
-  "commit": "1870fe3ab2300642b9f63942259b9b36439b3746",
+  "generated_at": "2026-08-19T15:04:12.208291+00:00",
+  "commit": "c4ae16c2f0b6cef264fe4f1461e14208a278b819",
   "environment": {
     "python": "3.12.11",
     "platform": "macOS-26.5.1-arm64-arm-64bit",
-    "hydradb_uri": "neo4j://127.0.0.1:7688"
+    "hydradb_uri": "neo4j://127.0.0.1:17699",
+    "hydradb_commit": "6a2fbb192f37f51a93690a2ae2d2f5e27e6e4219",
+    "seismic_commit": "c4ae16c2f0b6cef264fe4f1461e14208a278b819",
+    "seismic_branch": "main",
+    "seismic_benchmark_source_dirty": "true",
+    "seismic_benchmark_source_patch_sha256": "31c9e03274897bd0e903a5f4e5e68c89ab26b92f3f65d83e1545235ea7137ada"
   },
   "configuration": {
-    "repository_namespace": "seismic-stress-v1-20260817t151923130608z",
+    "repository_namespace": "seismic-stress-v1-20260819t150412208291z",
     "artifacts": 5000,
     "relationships": 20000,
     "query_count": 25,
@@ -18,11 +23,11 @@
   "summary": {
     "artifacts_written": 5000,
     "relationships_written": 20000,
-    "ingest_seconds": 35.294,
-    "artifact_throughput_per_second": 141.666,
-    "relationship_throughput_per_second": 566.662,
+    "ingest_seconds": 25.515,
+    "artifact_throughput_per_second": 195.967,
+    "relationship_throughput_per_second": 783.867,
     "exact_queries_verified": 25,
-    "query_latency_p50_ms": 6.92,
-    "query_latency_p95_ms": 8.926
+    "query_latency_p50_ms": 17.045,
+    "query_latency_p95_ms": 21.1
   }
 }

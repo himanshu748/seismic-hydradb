@@ -30,11 +30,11 @@ export const ProofScene: React.FC<{duration: number}> = ({duration}) => {
       <div style={{position: "absolute", inset: 0, opacity: phase(frame, 0, 260), display: "grid", gridTemplateColumns: "1.25fr .75fr", alignItems: "center"}}>
         <div>
           <Kicker tone={COLORS.verified}>Verified locally against real HydraDB and MCP</Kicker>
-          <div style={{fontFamily: "Seismic Display", fontSize: 250, lineHeight: .75, letterSpacing: "-.09em", fontWeight: 700, marginTop: 72, color: COLORS.orange}}><CountUp value={19} at={35} /></div>
+          <div style={{fontFamily: "Seismic Display", fontSize: 250, lineHeight: .75, letterSpacing: "-.09em", fontWeight: 700, marginTop: 72, color: COLORS.orange}}><CountUp value={22} at={35} /></div>
           <div style={{fontFamily: "Seismic Display", fontSize: 58, fontWeight: 700, letterSpacing: "-.05em", marginTop: 38}}>tests pass. Product works.</div>
         </div>
         <div style={{borderLeft: `1px solid ${COLORS.border}`, paddingLeft: 62, display: "grid", gap: 22}}>
-          {[["16", "FAST"], ["3", "LIVE"], ["BOLT", "DATABASE"], ["2", "MCP TRANSPORTS"]].map((item, index) => <Reveal key={item[1]} at={68 + index * 28} from="right"><div style={{display: "flex", alignItems: "baseline", justifyContent: "space-between", paddingBottom: 20, borderBottom: `1px solid ${COLORS.border}`}}><strong style={{fontFamily: "Seismic Display", fontSize: 48, color: index < 2 ? COLORS.paper : COLORS.verified}}>{item[0]}</strong><span style={{fontFamily: "Seismic Mono", fontSize: 14, color: COLORS.muted}}>{item[1]}</span></div></Reveal>)}
+          {[["19", "FAST"], ["3", "LIVE"], ["BOLT", "DATABASE"], ["2", "MCP TRANSPORTS"]].map((item, index) => <Reveal key={item[1]} at={68 + index * 28} from="right"><div style={{display: "flex", alignItems: "baseline", justifyContent: "space-between", paddingBottom: 20, borderBottom: `1px solid ${COLORS.border}`}}><strong style={{fontFamily: "Seismic Display", fontSize: 48, color: index < 2 ? COLORS.paper : COLORS.verified}}>{item[0]}</strong><span style={{fontFamily: "Seismic Mono", fontSize: 14, color: COLORS.muted}}>{item[1]}</span></div></Reveal>)}
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export const ProofScene: React.FC<{duration: number}> = ({duration}) => {
         <div style={{display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 72, marginTop: 45}}>
           <div><RepoRow name="HydraMind" impacts={14} at={900}/><RepoRow name="OmniDev" impacts={15} at={950}/><RepoRow name="BlastRadius" impacts={20} at={1000}/></div>
           <div style={{borderLeft: "1px solid rgba(18,16,14,.16)", paddingLeft: 62, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18}}>
-            {[["5,000", "ARTIFACTS"], ["20,000", "RELATIONSHIPS"], ["25/25", "EXACT RECOVERIES"], ["8.926 ms", "QUERY P95"]].map((item, index) => <Reveal key={item[1]} at={930 + index * 38} from="up"><div style={{padding: "24px 0", borderTop: "2px solid rgba(18,16,14,.14)"}}><div style={{fontFamily: "Seismic Display", fontSize: index === 3 ? 45 : 54, fontWeight: 700, color: index === 2 ? COLORS.verified : COLORS.graphite}}>{item[0]}</div><div style={{fontFamily: "Seismic Mono", fontSize: 12, marginTop: 12, color: "#6f665f"}}>{item[1]}</div></div></Reveal>)}
+            {[["5,000", "ARTIFACTS"], ["20,000", "RELATIONSHIPS"], ["25/25", "EXACT RECOVERIES"], ["3/3", "REAL REPOS"]].map((item, index) => <Reveal key={item[1]} at={930 + index * 38} from="up"><div style={{padding: "24px 0", borderTop: "2px solid rgba(18,16,14,.14)"}}><div style={{fontFamily: "Seismic Display", fontSize: 54, fontWeight: 700, color: index === 2 ? COLORS.verified : COLORS.graphite}}>{item[0]}</div><div style={{fontFamily: "Seismic Mono", fontSize: 12, marginTop: 12, color: "#6f665f"}}>{item[1]}</div></div></Reveal>)}
           </div>
         </div>
         <div style={{position: "absolute", left: 50, bottom: 38, fontFamily: "Seismic Mono", color: COLORS.verified, fontSize: 14}}>EVERY RETURNED REAL-REPOSITORY PATH PASSED STRUCTURAL VALIDATION ✓</div>

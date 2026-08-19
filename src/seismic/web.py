@@ -187,6 +187,17 @@ def create_app(service_override: SeismicService | None = None) -> FastAPI:
     ) -> dict[str, object]:
         return _service(request).repository_status(repo_id)
 
+    @web.get("/api/repositories/{repo_id}/decisions")
+    async def decision_history(
+        request: Request,
+        repo_id: Annotated[
+            str,
+            ApiPath(min_length=1, max_length=120, pattern=r"[A-Za-z0-9][A-Za-z0-9._-]*"),
+        ],
+        limit: int = 20,
+    ) -> list[dict[str, object]]:
+        return [dict(receipt) for receipt in _service(request).decision_history(repo_id, limit)]
+
     dist = _ui_dist()
     assets = dist / "assets"
     if assets.is_dir():

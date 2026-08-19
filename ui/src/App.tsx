@@ -110,16 +110,19 @@ export default function App() {
     setNotice(null);
     setBusy("analyze");
     try {
-      const result = await api.analyze(repoId, target, maxHops);
+      const [result, currentStatus] = await Promise.all([
+        api.analyze(repoId, target, maxHops),
+        api.status(repoId),
+      ]);
       setReport(result);
+      setStatus(currentStatus);
       setSelectedKey(result.results[0]?.artifact_key ?? null);
       if (result.results.length === 0) {
-        const unresolved = result.unresolved_targets.length
-          ? ` Target not found: ${result.unresolved_targets.join(", ")}.`
-          : " No supported path exists within this hop bound.";
-        setNotice(`Analysis returned no affected artifacts.${unresolved}`);
+        setNotice(`${result.evidence.reason} Receipt ${shortReceipt(result.receipt_id)}.`);
       } else {
-        setNotice(`Found ${result.results.length} affected artifacts through ${result.engine}.`);
+        setNotice(
+          `Found ${result.results.length} affected artifacts through ${result.engine}. Receipt ${shortReceipt(result.receipt_id)}.`,
+        );
       }
     } catch (caught) {
       setError(messageOf(caught));
@@ -134,12 +137,16 @@ export default function App() {
     setNotice(null);
     setBusy("analyze");
     try {
-      const result = await api.analyzeDiff(repoId, diffText, maxHops);
+      const [result, currentStatus] = await Promise.all([
+        api.analyzeDiff(repoId, diffText, maxHops),
+        api.status(repoId),
+      ]);
       setReport(result);
+      setStatus(currentStatus);
       setSelectedKey(result.results[0]?.artifact_key ?? null);
       setDiffOpen(false);
       if (result.results.length === 0) {
-        setNotice(result.gate.summary);
+        setNotice(`${result.evidence.reason} Receipt ${shortReceipt(result.receipt_id)}.`);
       } else {
         const changedFiles = result.diff_files?.length ?? 0;
         setNotice(
@@ -210,6 +217,7 @@ export default function App() {
           <div><dt>Artifacts</dt><dd>{status?.artifact_count.toLocaleString() ?? "0"}</dd></div>
           <div><dt>Relations</dt><dd>{status?.relationship_count.toLocaleString() ?? "0"}</dd></div>
           <div><dt>Status</dt><dd className={status?.status === "ready" ? "ready" : ""}>{status?.status ?? "empty"}</dd></div>
+          <div><dt>Evidence</dt><dd className={status?.evidence_complete ? "ready" : "review"}>{status ? status.evidence_complete ? "complete" : "review" : "unknown"}</dd></div>
         </dl>
 
         <form className="index-form" onSubmit={handleIndex}>
@@ -269,6 +277,13 @@ export default function App() {
                 ))}
               </div>
             </>
+          ) : report && report.results.length === 0 ? (
+            <div className={`drawer-empty ${report.evidence.fallback ? "fallback" : "bounded"}`}>
+              {report.evidence.fallback ? <TriangleAlert size={18} /> : <ShieldCheck size={18} />}
+              {report.evidence.fallback
+                ? "No supported path was invented. Inspect the fallback receipt."
+                : "No supported path exists within this analysis bound."}
+            </div>
           ) : (
             <div className="drawer-empty"><SearchCode size={18} /> Select an affected artifact to inspect its path.</div>
           )}
@@ -318,16 +333,12 @@ export default function App() {
               onSelect={() => setSelectedKey(result.artifact_key)}
             />
           )) : (
-            <div className="impact-empty">
-              <Network size={24} />
-              <strong>No evidence yet</strong>
-              <span>Run a change analysis to rank callers, tests and entrypoints.</span>
-            </div>
+            <EmptyEvidence report={report} />
           )}
         </div>
         {selected && (
           <div className="impact-detail">
-            <div><span>Risk score</span><strong>{selected.risk_score.toFixed(2)}</strong></div>
+            <div><span>Risk score (0-100)</span><strong>{selected.risk_score.toFixed(2)}</strong></div>
             <dl>
               <div><dt>Distance</dt><dd>{selected.hop_distance} {selected.hop_distance === 1 ? "hop" : "hops"}</dd></div>
               <div><dt>Confidence</dt><dd>{Math.round(selected.resolution_confidence * 100)}%</dd></div>
@@ -410,8 +421,16 @@ function GatePanel({ report }: { report: ChangeReport }) {
       <h2>{gate.headline}</h2>
       <p>{gate.summary}</p>
       <div className="gate-metrics">
-        <span><b>{gate.max_risk_score.toFixed(2)}</b> max risk</span>
+        <span><b>{gate.max_risk_score.toFixed(2)} / 100</b> highest detected risk</span>
         <span><b>{gate.impacted_artifacts}</b> impacts</span>
+      </div>
+      <div className={`gate-coverage ${report.evidence.fallback ? "fallback" : report.evidence.status}`}>
+        {report.evidence.fallback ? <TriangleAlert size={15} /> : <CircleDot size={15} />}
+        <div>
+          <span>{report.evidence.fallback ? "Safe decision withheld" : `Evidence ${report.evidence.status}`}</span>
+          <p>{report.evidence.reason}</p>
+          <code>receipt {shortReceipt(report.receipt_id)}</code>
+        </div>
       </div>
       {(gate.verification_commands.length > 0 || gate.affected_entrypoints.length > 0) && (
         <div className="gate-actions">
@@ -427,12 +446,35 @@ function GatePanel({ report }: { report: ChangeReport }) {
   );
 }
 
+function EmptyEvidence({ report }: { report: ChangeReport | null }) {
+  if (!report) {
+    return (
+      <div className="impact-empty">
+        <Network size={24} />
+        <strong>No evidence yet</strong>
+        <span>Run a change analysis to rank callers, tests and entrypoints.</span>
+      </div>
+    );
+  }
+  return (
+    <div className={`impact-empty ${report.evidence.fallback ? "fallback" : "bounded"}`}>
+      {report.evidence.fallback ? <TriangleAlert size={24} /> : <ShieldCheck size={24} />}
+      <strong>No affected paths to list</strong>
+      <span>
+        {report.evidence.fallback
+          ? `Fallback receipt ${shortReceipt(report.receipt_id)} is recorded in the gate above.`
+          : "The resolved target has no supported dependents within this bound."}
+      </span>
+    </div>
+  );
+}
+
 function ImpactRow({ result, index, selected, onSelect }: { result: ImpactResult; index: number; selected: boolean; onSelect: () => void }) {
   return (
     <button className={`impact-row ${selected ? "selected" : ""}`} type="button" onClick={onSelect}>
       <span className="rank">{String(index + 1).padStart(2, "0")}</span>
       <span className="row-copy"><strong>{result.qualified_name || result.logical_key}</strong><small>{result.kind} · {result.hop_distance} {result.hop_distance === 1 ? "hop" : "hops"}</small></span>
-      <span className={`risk-chip ${result.risk_score >= 70 ? "high" : result.risk_score >= 45 ? "medium" : "low"}`}>{result.risk_score.toFixed(2)}</span>
+      <span className={`risk-chip ${result.risk_score >= 75 ? "high" : result.risk_score >= 45 ? "medium" : "low"}`}>{result.risk_score.toFixed(2)}</span>
       <ChevronRight size={16} />
     </button>
   );
@@ -441,6 +483,10 @@ function ImpactRow({ result, index, selected, onSelect }: { result: ImpactResult
 function shortSha(value: string) {
   if (!value) return "worktree";
   return value.startsWith("worktree-") ? value.slice(0, 18) : value.slice(0, 10);
+}
+
+function shortReceipt(value: string) {
+  return value ? value.slice(0, 8).toUpperCase() : "PENDING";
 }
 
 function messageOf(caught: unknown) {

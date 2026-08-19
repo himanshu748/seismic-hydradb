@@ -49,6 +49,7 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         service = SeismicService(db, config)
 
         first = service.index_repository(str(repo), repo_id=repo_id)
+        first_graph = service.parser.parse(str(repo), explicit_repo_key=repo_id)
         repeated = service.index_repository(str(repo), repo_id=repo_id)
         report = service.analyze_change(
             repo_id,
@@ -58,6 +59,7 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         )
 
         assert first["activated"] is True
+        assert first["relationships"] == len(first_graph.relationships)
         assert repeated["snapshot_id"] == first["snapshot_id"]
         assert repeated["artifacts"] == first["artifacts"]
         result_keys = {result["logical_key"] for result in report["results"]}
@@ -66,6 +68,14 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         assert "tests/test_checkout.py::test_total" in result_keys
         assert "pyproject.toml::script::sample" in result_keys
         assert report["engine"] == "HydraDB algo.SSpaths"
+        assert report["evidence"]["status"] == "incomplete"
+        assert report["evidence"]["fallback"] is True
+        assert "unresolved call" in report["evidence"]["reason"]
+        supported_receipt = service.decision_history(repo_id, limit=1)[0]
+        assert supported_receipt["id"] == report["receipt_id"]
+        assert supported_receipt["supported_impacts"] == len(report["results"])
+        assert supported_receipt["evidence_status"] == "incomplete"
+        assert supported_receipt["fallback"] is True
 
         diff_report = service.analyze_diff(
             repo_id,
@@ -126,6 +136,13 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         assert missing["results"] == []
         assert missing["unresolved_targets"] == ["src/sample_app/pricing.py::not_real"]
         assert missing["gate"]["decision"] == "review"
+        assert missing["evidence"]["fallback"] is True
+        assert missing["receipt_id"]
+        latest_receipt = service.decision_history(repo_id, limit=1)[0]
+        assert latest_receipt["id"] == missing["receipt_id"]
+        assert latest_receipt["fallback"] is True
+        assert latest_receipt["decision"] == "review"
+        assert latest_receipt["evidence_status"] == "incomplete"
 
         explanation = service.explain_impact(
             repo_id,
@@ -175,6 +192,14 @@ def test_index_analyze_explain_incident_and_reindex(tmp_path: Path) -> None:
         )
         assert new_snapshot["snapshot_id"] != first["snapshot_id"]
         assert reindexed_service_result["incident_pair_count"] == 1
+
+        stale = service.writer.write(
+            first_graph,
+            0.0,
+            activation_started_at="2000-01-01T00:00:00+00:00",
+        )
+        assert stale["activated"] is False
+        assert service.repository_status(repo_id)["snapshot_id"] == new_snapshot["snapshot_id"]
 
         unsupported = service.explain_impact(
             repo_id,

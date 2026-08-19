@@ -68,6 +68,7 @@ def test_fresh_mcp_process_analyzes_graph_indexed_by_prior_process(tmp_path: Pat
                 "explain_impact",
                 "record_incident",
                 "repository_status",
+                "decision_history",
             }
             indexed = await client.call_tool(
                 "index_repository",

@@ -18,8 +18,20 @@ export function GraphCanvas({ report, selectedKey, onSelect, loading }: GraphCan
   );
 
   if (!report || report.results.length === 0) {
+    const emptyHeadline = loading
+      ? "Tracing dependency paths"
+      : report?.evidence.fallback
+        ? "Safe decision withheld"
+        : report
+          ? "No supported impact path"
+          : "No blast radius loaded";
+    const emptyDetail = loading
+      ? "HydraDB is walking incoming code relationships."
+      : report
+        ? report.evidence.reason
+        : "Index a Git repository, enter a file or symbol and analyze the change.";
     return (
-      <div className={`graph-empty ${loading ? "is-loading" : ""}`}>
+      <div className={`graph-empty ${loading ? "is-loading" : ""} ${report?.evidence.fallback ? "fallback" : ""}`}>
         <svg viewBox="0 0 680 360" aria-hidden="true">
           <g className="survey-lines">
             {[80, 160, 240, 320].map((y) => (
@@ -30,12 +42,8 @@ export function GraphCanvas({ report, selectedKey, onSelect, loading }: GraphCan
           <circle className="empty-origin" cx="245" cy="128" r="8" />
         </svg>
         <div className="empty-message">
-          <strong>{loading ? "Tracing dependency paths" : "No blast radius loaded"}</strong>
-          <span>
-            {loading
-              ? "HydraDB is walking incoming code relationships."
-              : "Index a Git repository, enter a file or symbol and analyze the change."}
-          </span>
+          <strong>{emptyHeadline}</strong>
+          <span>{emptyDetail}</span>
         </div>
       </div>
     );

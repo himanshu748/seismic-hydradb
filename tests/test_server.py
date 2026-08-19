@@ -20,6 +20,7 @@ def test_server_registers_documented_tools_with_descriptions() -> None:
         "explain_impact",
         "record_incident",
         "repository_status",
+        "decision_history",
     }
     assert all(tool.description for tool in by_name.values())
     assert by_name["index_repository"].input_schema["required"] == ["repo_path"]

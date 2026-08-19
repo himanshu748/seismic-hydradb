@@ -15,6 +15,7 @@ def build_change_gate(
     targets: list[str],
     results: list[ImpactResult],
     unresolved_targets: list[str],
+    evidence_complete: bool = True,
 ) -> ChangeGate:
     """Convert supported paths into a conservative action for a coding agent."""
 
@@ -32,7 +33,7 @@ def build_change_gate(
     decision: GateDecision
     if incident_pairs or max_risk_score >= BLOCK_RISK_SCORE:
         decision = "block"
-    elif unresolved_targets or not targets or results:
+    elif unresolved_targets or not targets or results or not evidence_complete:
         decision = "review"
     else:
         decision = "safe"
@@ -60,6 +61,11 @@ def build_change_gate(
         )
     if not targets:
         reasons.append("No indexed symbol could be resolved from the supplied change.")
+    if not evidence_complete:
+        reasons.append(
+            "The active snapshot contains unresolved parser evidence, so Seismic cannot "
+            "issue a safe decision."
+        )
     if decision == "safe":
         reasons.append("No downstream dependency path is supported within the requested bound.")
 

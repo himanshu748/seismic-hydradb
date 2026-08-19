@@ -61,6 +61,18 @@ def test_gate_is_safe_only_when_a_target_resolves_without_supported_impact() -> 
     assert empty_diff["decision"] == "review"
 
 
+def test_gate_withholds_safe_when_snapshot_evidence_is_incomplete() -> None:
+    gate = build_change_gate(
+        targets=["src/leaf.py::format"],
+        results=[],
+        unresolved_targets=[],
+        evidence_complete=False,
+    )
+
+    assert gate["decision"] == "review"
+    assert "cannot issue a safe decision" in gate["reasons"][-1]
+
+
 def _impact(
     logical_key: str,
     kind: str,
