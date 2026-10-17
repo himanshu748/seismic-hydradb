@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a bounded improvement to Seismic.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues and PRs first. Describe the problem and a verifiable scope. Remove tokens, private code, and sensitive paths from examples.
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem and current behavior
+      description: What task is difficult today? Include a concrete example and the Seismic commit or relevant code path.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope and acceptance criteria
+      description: Describe the intended result, affected areas, and what is outside the scope.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Verification plan
+      description: Suggest a test command and observable result. State whether the change needs live HydraDB, a UI build, or only fast Python tests; see CONTRIBUTING.md.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and tradeoffs
+      description: Existing workarounds, dependencies, platform implications, and effects on graph evidence or conservative gate behavior, if applicable.

@@ -1,0 +1,40 @@
+name: Bug report
+description: Report reproducible behavior in Seismic.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues and PRs first. See CONTRIBUTING.md for the database-free fast suite and live checks. Remove tokens, .env contents, private code, and sensitive paths from all examples and logs.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Seismic commit, OS, Python version, and install command. Add Node.js version for UI reports and HydraDB revision for live graph reports.
+      placeholder: Paste `git rev-parse HEAD` and relevant version information, with sensitive values removed.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Exact commands and a small shareable fixture or unified diff. State whether the database-free fast suite or live HydraDB path is affected.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and evidence
+      description: Include sanitized errors or output. Separate observed results from hypotheses.
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Checks run
+      description: Exact commands and results; explain any unavailable prerequisites. For example, `.venv/bin/pytest -q tests/test_diffing.py` or `.venv/bin/pytest -q -m 'not integration'`.
