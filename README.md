@@ -311,6 +311,11 @@ tests/                   fast, Bolt and real MCP transport checks
 videos/                  Remotion judge demo, storyboard and narration script
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for a database-free first test run,
+development checks, and guidance for issues and pull requests.
+
 ## License
 
 MIT
