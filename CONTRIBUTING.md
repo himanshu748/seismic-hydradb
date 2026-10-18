@@ -87,10 +87,12 @@ configured Seismic backend and HydraDB described in the README.
 
 ### Live graph and transport changes
 
-The integration marker requires a running HydraDB Bolt endpoint. Use a disposable
-local graph for testing: integration tests write snapshots, receipts, and incidents,
-then clean up their test repositories. Follow the [README setup](README.md#quick-start)
-for the connection variables and allowed repository roots, then run:
+The integration marker requires a running HydraDB Bolt endpoint. Use only a
+disposable local graph: the live suite leaves snapshots, receipts, and incidents
+behind. After testing, stop the test node and manually discard its disposable
+graph data. Do not use a graph containing data you need to keep. Follow the
+[README setup](README.md#quick-start) for the connection variables and allowed
+repository roots, then run:
 
 ```bash
 .venv/bin/pytest -q -m integration
